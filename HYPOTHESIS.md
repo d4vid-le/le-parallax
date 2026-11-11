@@ -1,0 +1,254 @@
+# LeParallax — hypotheses
+
+This document states the claims we intend to test, the predictions that follow
+from them, and the observations that would prove them wrong. It is written before
+the code, so the protocol can be frozen before the first result.
+
+---
+
+## 1. The problem
+
+A small action-conditioned world model learns from transitions:
+
+```
+(o_t, a_t) -> o_{t+1}
+```
+
+The encoder is shaped by the prediction loss. Nothing in that objective says
+"encode the world state and ignore the camera." If nuisance is predictive of the
+next frame — lighting that changes with time, a texture correlated with an
+object, a camera that moves with the agent — the encoder can keep it.
+
+The Platonic JEPA theorem says same-state views fix this: if two observations
+differ only in nuisance, the encoder must keep what they share. But the theorem
+assumes an identity predictor, not an action-conditioned one. Action-conditioned
+world models are outside its scope.
+
+**The problem LeParallax addresses:** does good-view supervision make an
+action-conditioned world model more state-like and more reliable, or does the
+invariance it imposes remove information the planner needs?
+
+This is a question about the interaction between representation learning and
+control, not about scale.
+
+---
+
+## 2. Definitions
+
+| Term | Meaning in this project |
+|---|---|
+| **State** `s` | The physical variables that determine the task: position, velocity, pose, contact, goal. |
+| **Nuisance** `n` | Variables that change the observation but not the task: lighting, texture, background, camera offset, render style. |
+| **Observation** `o` | A rendering of `(s, n)`. |
+| **Good view** | Two observations of the **same state** with **independent nuisance**: `(render(s, n1), render(s, n2))`. |
+| **Bad view** | Two corruptions of **one observation**: crops, color jitter, masks. They share the nuisance. |
+| **Temporal pair** | `(o_t, a_t, o_{t+1})`: two **different states** linked by an action. |
+| **State probe** | A linear readout from the latent to the physical state. |
+| **Nuisance probe** | A linear readout from the latent to the nuisance variables. Lower is better. |
+| **Forgetting** | The drop in old-domain planning success after adaptation to a new domain. |
+
+The distinction between a good view and a temporal pair is the crux. A video
+frame at `t` and a frame at `t+1` are not two views of the same state; they are
+two states. Treating them as positives teaches scene identity, not state
+invariance, and can blur the dynamics.
+
+---
+
+## 3. The claim ladder
+
+We make four claims, in order. Each is a separate experiment and a separate
+falsifier. We do not skip a rung.
+
+```
+H1  mechanism   the latent becomes more state-like, less nuisance-like
+H2  behavior    planning becomes more robust and more data-efficient
+H3  retention   adaptation forgets less under nuisance shift
+H4  transfer    separately trained modalities align up to a rotation
+```
+
+H1 is about representation. H2 is about control. H3 is about continual learning.
+H4 is about modularity. A failure at H1 stops the ladder; a failure at H2 does
+not invalidate H1, but it changes the story from "better representation, better
+control" to "better representation, wrong information."
+
+---
+
+## 4. H1 — the mechanism claim
+
+**Claim.** Same-state good-view supervision increases the fraction of the latent
+explained by world state and decreases the fraction explained by nuisance,
+relative to temporal-only and bad-view supervision.
+
+**Intervention.** Add a good-view consistency term to the encoder:
+
+```
+L_good = || f(o_i) - f(o_j) ||^2,   o_i, o_j = render(s, n_i), render(s, n_j)
+```
+
+with independent nuisance `n_i, n_j` and the same state `s`. The term is added to
+the standard prediction loss and SIGReg.
+
+**Prediction.**
+
+- State probe R² is at least **0.10 higher** for good views than for the temporal
+  baseline.
+- Nuisance probe R² is at least **0.10 lower** for good views than for the
+  temporal baseline.
+- The effect is ordered: good view > temporal > bad view on state R², and the
+  reverse on nuisance R².
+
+**Falsifier.** No probe difference, or good views increase nuisance decodability,
+or the ordering reverses. In that case the theorem does not transfer to this
+regime, and we report it.
+
+**Why it matters.** If the mechanism is not visible in the probes, any control
+gain would be a coincidence. H1 is the manipulation check.
+
+---
+
+## 5. H2 — the behavior claim
+
+**Claim.** Good-view supervision improves out-of-distribution planning under a
+nuisance shift and improves data efficiency, without a meaningful
+in-distribution regression.
+
+**Prediction.**
+
+- At **50% of the training data**, good-view pretraining improves OOD planning
+  success by at least **10 percentage points** over the temporal baseline.
+- In-distribution planning success drops by no more than **2 percentage points**.
+- At 100% data, the OOD gain is at least **5 points**.
+- The gain survives three seeds; the confidence interval excludes zero.
+
+**Falsifier.** OOD gain below 5 points, ID regression above 5 points, or the gain
+disappears when the baseline is given the same total compute. Any of these is a
+negative result worth reporting.
+
+**Why it matters.** This is the translation from representation to control. The
+paper's 42× sample-efficiency claim is about alignment, not planning; H2 tests
+whether it survives the translation.
+
+---
+
+## 6. H3 — the retention claim
+
+**Claim.** Good-view pretraining reduces forgetting under a **nuisance shift**,
+but not necessarily under a **dynamics shift**.
+
+**Setup.** Train on domain A, adapt to domain B, measure old-domain retention.
+
+- Nuisance shift: new lighting, texture, or camera; same dynamics.
+- Dynamics shift: new friction, mass, or action effect; same nuisance.
+
+**Prediction.**
+
+- Under nuisance shift, old-domain success drops by **≤5 points** for good-view
+  pretraining versus **≥15 points** for the temporal baseline.
+- Under dynamics shift, the advantage shrinks or disappears; both models need
+  adaptation.
+- The dissociation is the result: good views buy invariance to nuisance, not
+  immunity to dynamics change.
+
+**Falsifier.** No forgetting reduction under nuisance shift, or good views hurt
+adaptation to the new domain. Either outcome is informative.
+
+**Why it matters.** This is the continual-learning link. If nuisance invariance
+makes nuisance shifts free, good views are a representation-level regularizer
+that composes with an adapter like Le-Gates for the dynamics. If not, the
+continual-learning problem is not a representation problem.
+
+---
+
+## 7. H4 — the transfer claim
+
+**Claim.** Vision and proprioception encoders trained **separately** with good
+views align up to a rotation, and planning with the rotated latent is competitive
+with joint training.
+
+**Setup.** Train a vision JEPA and a small proprio JEPA on the same trajectories.
+Neither sees the other modality. Fit one orthogonal map on `k` paired timesteps
+(Procrustes). Use the aligned proprio latent as an auxiliary planner input.
+
+**Prediction.**
+
+- Rotation retrieval is above chance and improves with `k`.
+- Planning with the aligned latent is within **5 points** of joint training.
+- The rotation is stable across seeds.
+
+**Falsifier.** Alignment at chance, planning degrades by more than 10 points, or
+the rotation is unstable. The theorem's assumptions would not survive
+action-conditioned dynamics.
+
+**Why it matters.** If it works, modalities can be added without retraining the
+whole world model: train the encoder separately, align with a rotation, plug it
+in. That is a modular path to reliable small models.
+
+---
+
+## 8. The alternative hypothesis
+
+**Good views over-invariantize the latent.**
+
+Nuisance is not always noise. Color can identify a block; texture can signal
+friction; a camera offset can be task-relevant. If good views remove information
+the planner needs, then:
+
+- State probes improve,
+- Nuisance probes drop,
+- But in-distribution planning gets worse, or dynamics prediction degrades.
+
+This is a real possibility and is pre-registered as an alternative. The result
+would be a **trade-off curve**, not a free lunch: invariance buys robustness at
+the cost of task-relevant detail. That is still a useful result, and it would
+change the recommendation from "add good views" to "add good views only for the
+nuisance dimensions you can afford to lose."
+
+---
+
+## 9. Scope and assumptions
+
+- **One model family.** A small action-conditioned JEPA, 1–15M parameters, 96px,
+  3-frame history, SIGReg.
+- **Simulated worlds.** A controlled 2D world first; PushT/Two-Room second. No
+  real-robot data.
+- **Three seeds.** Enough to see a large effect, not enough for a small one. We
+  pre-register the effect size we care about.
+- **Nuisance is defined by the simulator.** We can render the same state with
+  different nuisance because we control the renderer. This is the cleanest
+  possible test; real data will be messier.
+- **The theorem is a guide, not a guarantee.** The action-conditioned predictor
+  is outside its assumptions. A positive result is an extension; a negative
+  result is a boundary.
+
+---
+
+## 10. What would change our mind
+
+- H1 shows no probe difference: the mechanism does not transfer; stop.
+- H2 shows a gain only at equal compute but not equal data: it is a compute
+  effect, not a representation effect.
+- H3 shows forgetting is unchanged: representation invariance is not the lever
+  for continual learning; adaptation is.
+- H4 shows alignment at chance: the rotation result needs the identity predictor,
+  not just good views.
+- The alternative hypothesis wins: good views hurt control. Then the project's
+  contribution is the trade-off, not the recipe.
+
+A clean negative at any rung is a result. The protocol is built to make it
+publishable.
+
+---
+
+## 11. Why this is worth doing
+
+- It tests a theorem **outside its proven scope**, in the regime where world
+  models actually live.
+- It connects **representation learning** (good views) to **continual learning**
+  (forgetting), which are usually studied separately.
+- It is cheap: a small model, a simulated world, one M5. The result does not
+  depend on scale.
+- It has a clear failure mode. If good views over-invariantize, we learn
+  something about the limits of the Platonic recipe for control.
+
+The north star is reliable small models that learn continually. This chapter asks
+whether one representational lever — same-state views — is part of the answer.

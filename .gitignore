@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Experiment artifacts
+runs/
+checkpoints/
+data/
+*.npz
+*.pt
+*.safetensors
+*.log
+*.jsonl
+
+# Local notes
+.local/
+.DS_Store
+
+# OS / editor
+.idea/
+.vscode/
+*.swp
