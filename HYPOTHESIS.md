@@ -114,6 +114,13 @@ endpoint is the paired relative reduction in
 [`docs/PREREG-v2.md`](docs/PREREG-v2.md), frozen before the confirmatory run. The
 original threshold remains here for the record.
 
+**Confirmatory result (2026-11-12).** H1a and H1c pass; H1b fails literally;
+overall **FAIL**. Five seeds: mean relative ratio **0.114** (CI 0.089–0.143),
+5/5 seeds ≤0.7; good state R² 0.898–0.945 vs temporal 0.687–0.870; bad mean
+ratio 6.708. The failure is the absolute 0.75 state floor on seed 1's temporal
+baseline; the good arm is 0.898 there and higher than temporal in every seed. See
+[`docs/H1-CONFIRM.md`](docs/H1-CONFIRM.md).
+
 **Why it matters.** This is the manipulation check. If the good-view term does
 not move the latent toward nuisance invariance, any control gain would be a
 coincidence.

@@ -146,8 +146,11 @@ Bad views made it worse (3.69 at 64px). The absolute `<0.5` threshold was not
 met, so the confirmatory protocol uses a paired relative endpoint
 ([`docs/PREREG-v2.md`](docs/PREREG-v2.md)).
 
-**Gate 1 status:** direction consistent; absolute threshold not met;
-confirmatory run pending. Do not claim H1 yet.
+**Gate 1 status:** H1a (relative ratio **0.114**, 5/5) and H1c (bad view
+**6.71**) confirmed; H1b (absolute state floor) failed on one temporal baseline
+seed; overall **FAIL** as pre-registered. Mechanism supported; full H1 claim not
+made. See [`docs/H1-CONFIRM.md`](docs/H1-CONFIRM.md). Next: H2 planning under
+nuisance shift.
 
 **Gate 2:** H2 shows an OOD gain with no meaningful ID regression. If H2 fails
 but H1 passes, the result is the invariance–control trade-off; write that.
