@@ -113,6 +113,7 @@ def history_obs(
                     if episode.door_open is not None
                     else None
                 ),
+                occlude_door_right=episode.occlude_door_right,
             )
             for i in idx
         ]

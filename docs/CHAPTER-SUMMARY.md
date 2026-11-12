@@ -68,6 +68,7 @@ The one-line story:
 | **Le-Gates v2** | Soft error gate routes (AUC 0.667) but forgets +104%. | Routing is not retention; the sigmoid leaks. |
 | **Le-Gates v3** | Hard gate forgets +26%, routes 18.5% of A. | The router, not the gate scalar, is the bottleneck. |
 | **Anti-Equivalence** | One-way door; volume arm Δasym +7.32 but forward R² 0.184 / reverse R² −5.08 and latent std 0.599; asym Δasym −0.115 vs symmetric −0.013, lower on 4/5 seeds; wrong-sign reach AUC 0.670. | The determinant penalty collapses; the matched reversible control removes the direction effect; the wrong-sign control gets the same reachability gain. Direction is not volume. |
+| **Phase 2 pilot** | Occluded door + matched heads; `asym_clean` Δasym +0.146 vs `sym_head` −0.055, bounded-volume std 1.044, but state R² 0.308/0.322 vs the 0.8 guardrail and planner AUC 0.722/0.750. | The partial-observation manipulation is right and the direction signal flips positive, but the pair loss/capacity is the bottleneck. Inconclusive, not confirmatory. |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -119,6 +120,9 @@ credible.
   test falsified the operationalized version; the determinant/log-volume penalty
   collapsed the latent, and the matched reversible control removed the apparent
   direction effect.
+- A definitive confirmation from Phase 2. The occluded-door pilot flips the
+  direction sign positive but fails the state R² guardrail (0.308/0.322 vs 0.8)
+  and does not improve the planner. It is suggestive, not confirmatory.
 - A general claim about all world models. This is one synthetic world, one small
   model, five seeds.
 - Full H1 as pre-registered. H1b failed literally.
@@ -162,10 +166,11 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **A fair Anti-Equivalence test.** Use an occluded observation where the
-   irreversible information is actually lost, or a same-state door open/closed
-   counterfactual. Add a sufficiency constraint (state R² floor / variance
-   floor) and a full-rank `symmetric_heads` control to isolate the bottleneck.
+2. **Phase 2 scale-up.** The occluded-door pilot flips the direction sign
+   positive but fails the state guardrail (0.308/0.322 vs 0.8) and does not
+   improve the planner. Lower the pair weight to 0.05–0.10, lower the variance
+   floor to 0.1–0.25, scale the encoder/latent, and add a keypoint-specific
+   state head. Re-run five seeds only after the temporal state R² is ≥0.8.
 3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.

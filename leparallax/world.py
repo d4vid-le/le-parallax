@@ -30,6 +30,7 @@ class Episode:
     nuisance: np.ndarray    # (11,) float32
     dynamics: np.ndarray    # (2,) [damping, action_gain]
     door_open: np.ndarray | None = None  # (T + 1,) bool, optional one-way door
+    occlude_door_right: bool = False  # hide door status when the puck is right
 
 
 def sample_nuisance(rng: np.random.Generator) -> np.ndarray:
@@ -74,11 +75,14 @@ def render_state(
     nuisance: np.ndarray,
     size: int = IMAGE_SIZE,
     door_open: bool | None = None,
+    occlude_door_right: bool = False,
 ) -> np.ndarray:
     """Render one state. State is [x, y, vx, vy]; only position is visible.
 
     If `door_open` is not None, draw the one-way door at x=0.5. An open door has
-    a gap from y=0.35 to 0.65; a closed door is solid.
+    a gap from y=0.35 to 0.65; a closed door is solid. If
+    `occlude_door_right` is set and the puck is on the right, an occlusion wall
+    hides the door status while keeping the puck visible.
     """
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float32) / max(size - 1, 1)
 
@@ -113,6 +117,16 @@ def render_state(
             draw.line([(door_x, y_gap1), (door_x, y_bot)], fill=color, width=width)
         else:
             draw.line([(door_x, y_top), (door_x, y_bot)], fill=color, width=width)
+
+        if occlude_door_right and state[0] >= 0.5:
+            x0, _ = _state_to_px(0.42, 0.5, nuisance, size)
+            x1, _ = _state_to_px(0.58, 0.5, nuisance, size)
+            draw.rectangle(
+                [x0, 0, x1, size - 1], fill=(38, 38, 44)
+            )
+            draw.line(
+                [(x0, 0), (x0, size - 1)], fill=(120, 120, 130), width=1
+            )
 
     r = max(6, size // 12)
     gx, gy = _state_to_px(goal[0], goal[1], nuisance, size)
@@ -190,6 +204,7 @@ def generate_episode(
     dynamics: np.ndarray | None = None,
     one_way_door: bool = False,
     door_goal_right: float = 0.6,
+    occlude_door_right: bool = False,
 ) -> Episode:
     dynamics = DEFAULT_DYNAMICS if dynamics is None else np.asarray(dynamics, dtype=np.float32)
     state, goal = _initial_state(rng)
@@ -242,6 +257,7 @@ def generate_episode(
             render_state(
                 s, goal, nuisance, size=size,
                 door_open=bool(door_flags[i]) if door_flags is not None else None,
+                occlude_door_right=occlude_door_right,
             )
             for i, s in enumerate(states_arr)
         ]
@@ -254,6 +270,7 @@ def generate_episode(
         nuisance=nuisance,
         dynamics=dynamics.astype(np.float32),
         door_open=np.array(door_flags, dtype=bool) if door_flags is not None else None,
+        occlude_door_right=occlude_door_right,
     )
 
 
@@ -268,6 +285,7 @@ def generate_episodes(
     dynamics: np.ndarray | None = None,
     one_way_door: bool = False,
     door_goal_right: float = 0.6,
+    occlude_door_right: bool = False,
 ) -> list[Episode]:
     rng = np.random.default_rng(seed)
     return [
@@ -276,6 +294,7 @@ def generate_episodes(
             nuisance_shift=nuisance_shift, nuisance_mode=nuisance_mode,
             dynamics=dynamics, one_way_door=one_way_door,
             door_goal_right=door_goal_right,
+            occlude_door_right=occlude_door_right,
         )
         for _ in range(n)
     ]

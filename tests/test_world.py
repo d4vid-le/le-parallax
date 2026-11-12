@@ -10,6 +10,7 @@ from leparallax.data import (
 from leparallax.world import (
     generate_episodes,
     history_indices,
+    render_state,
     step_state,
 )
 
@@ -86,6 +87,35 @@ def test_one_way_door_closes_and_blocks_return():
             s, np.array([-1.0, 0.0], dtype=np.float32), door_open=False
         )
     assert s[0] >= 0.5
+
+
+def test_right_side_door_is_occluded():
+    ep = generate_episodes(
+        1, steps=32, size=32, seed=0, goal_directed=0.5,
+        one_way_door=True, occlude_door_right=True,
+    )[0]
+    left = ep.states[0].copy()
+    left[0] = 0.25
+    a = render_state(
+        left, ep.goal, ep.nuisance, size=32,
+        door_open=True, occlude_door_right=True,
+    )
+    b = render_state(
+        left, ep.goal, ep.nuisance, size=32,
+        door_open=False, occlude_door_right=True,
+    )
+    assert not np.array_equal(a, b)
+    right = left.copy()
+    right[0] = 0.75
+    a = render_state(
+        right, ep.goal, ep.nuisance, size=32,
+        door_open=True, occlude_door_right=True,
+    )
+    b = render_state(
+        right, ep.goal, ep.nuisance, size=32,
+        door_open=False, occlude_door_right=True,
+    )
+    assert np.array_equal(a, b)
 
 
 def test_history_obs_can_rerender_nuisance():

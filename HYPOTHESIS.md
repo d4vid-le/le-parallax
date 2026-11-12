@@ -276,6 +276,15 @@ collapse, not a causal slice. The wrong-sign control had the highest mean
 reachability AUC (0.670). Direction is not volume. See
 [`docs/COLLISION-4.md`](docs/COLLISION-4.md).
 
+**Phase 2 postscript (inconclusive).** Occluding the door on the right and
+matching the head capacities flips the direction sign positive: `asym_clean`
+`Δasym` +0.146 vs `sym_head` −0.055, and the bounded-volume arm holds latent std
+1.044. But state R² falls to 0.308/0.322 against the pre-registered 0.8
+guardrail, and the planner AUC is 0.722 vs 0.750. The partial-observation
+manipulation is right; the model cannot hold state and irreversibility at this
+scale. The trial is suggestive, not confirmatory. See
+[`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md).
+
 ## 7. H4 — the transfer claim
 
 **Claim.** Vision and proprioception encoders trained **separately** with good

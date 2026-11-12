@@ -406,6 +406,7 @@ the isolation.
 | Le-Gates v2 | Soft error gate routes (AUC 0.667) but forgets +104% | Routing is not retention; the soft sigmoid leaks |
 | Le-Gates v3 | Hard gate forgets +26%, routes 18.5% of A | The router, not the gate scalar, is the bottleneck |
 | Anti-Equivalence | Volume arm Δasym +7.32 but forward R² 0.184 / reverse R² −5.08, latent std 0.599; asym Δasym −0.115 vs symmetric −0.013, lower 4/5; wrong-sign reach AUC 0.670 | The determinant penalty collapses; the matched control removes the direction effect; the wrong-sign control gets the same reachability gain |
+| Phase 2 pilot | Occluded door flips the direction positive (+0.146 vs −0.055), but state R² is 0.308 vs the 0.8 guardrail; planner AUC 0.722 vs 0.750 | Partial observation is the right manipulation, but the pair loss/capacity is the bottleneck; not confirmatory |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -476,6 +477,17 @@ knob unless it is paired with a sufficiency constraint. On a visible
 irreversible event the temporal model already has the information; a fair test
 needs an occlusion or a same-state counterfactual where the information is
 actually lost. See [`COLLISION-4.md`](COLLISION-4.md).
+
+**Phase 2** built that fairer test: the door is occluded on the right, the
+symmetric control has parameter-matched heads, and the volume penalty has a
+VICReg-style variance floor. The direction sign flips positive — `asym_clean`
+`Δasym` **+0.146** vs `sym_head` **−0.055** — and the bounded volume arm keeps
+latent std **1.044**. But state R² falls to **0.308 / 0.322**, far below the
+pre-registered **0.80** guardrail, and the planner AUC is **0.722** vs
+**0.750** for the symmetric head. Phase 2 is therefore **inconclusive on the
+representation claim**: the partial-observation manipulation works, but the
+142k model cannot hold both the state and the irreversibility at this pair
+weight. See [`PHASE2-PILOT.md`](PHASE2-PILOT.md).
 
 ### 6.4 Why the effect appears in control only after domain randomization
 
@@ -552,6 +564,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Le-Gates v1/v2 | `scripts/legates_dynamics.py` | `docs/PREREG-COLLISION-2.md`, `docs/PREREG-LEGATES-V2.md` |
 | Le-Gates v3 hard | `scripts/legates_hard.py` | `docs/PREREG-LEGATES-V3.md` |
 | Anti-Equivalence | `scripts/asymmetry_collision.py` | `docs/PREREG-ASYMMETRY.md` |
+| Phase 2 pilot | `scripts/asymmetry_collision.py`, `scripts/phase2_planner.py` | `docs/PREREG-PHASE2.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -570,6 +583,7 @@ CSA       ebe06189f15c3e9c42788e709b93d9f02c9ff491ce5682e8e99a7f259b9885c7
 LG-v2     d4dc847f6b2df2dd431292e9c91e98ffd9920ee68312fbf1defe458be3caea2c
 LG-v3     6d76fc43a881ba1210d16cacc92b55d1e98c2cc15798abfe2893fb8956fda6a5
 Asym      e1fc79ff68fb92d9a2a5552158ea1c1a17e89de90178d97e15a43302b275eea1
+Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 ```
 
 ## Appendix B — Hyperparameters
@@ -596,6 +610,10 @@ Asym      e1fc79ff68fb92d9a2a5552158ea1c1a17e89de90178d97e15a43302b275eea1
 | One-way door | `x=0.5`, gap `y∈[0.35,0.65]`, closes on first crossing |
 | Asym pair offsets | pre 2/4, post 2/4; reversible gaps 4/6/8 |
 | Asym training | 20 epochs, 5 warmup, `λ_pair=0.25`, `λ_state=0.25`, `λ_vol=0.05` |
+| Phase 2 occlusion | door hidden on the right; post offsets 3/5 |
+| Phase 2 training | 40 epochs, 5 warmup, `λ_pair=0.25`, `λ_state=0.25` |
+| Phase 2 variance floor | `gamma=1.0`, weight 1.0 |
+| Phase 2 planner | 64 random shots + controller, horizon 6, threshold p90 reachable |
 
 ## References
 

@@ -215,10 +215,18 @@ asymmetric arm's Δasym was −0.115 vs −0.013 for symmetric, lower on 4/5 see
 the wrong-sign control had the highest reachability AUC (0.670). See
 [`docs/COLLISION-4.md`](docs/COLLISION-4.md).
 
-**The chapter in eight results:** mechanism (H1), control (H2-v4), retention
+**Phase 2: the fair test flips the sign, but fails the guardrail.** With the
+door occluded on the right and parameter-matched heads, `asym_clean` has
+**Δasym +0.146** vs `sym_head` **−0.055**, and the bounded-volume arm keeps
+latent std **1.044**. But state R² is **0.308 / 0.322** against the
+pre-registered **0.80** guardrail, and the planner AUC is **0.722** vs
+**0.750** for the symmetric head. The trial is **inconclusive**, not a
+confirmation. See [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md).
+
+**The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
-boundary, and the Anti-Equivalence failure. The full synthesis, including the
-failed endpoints and the caveats, is in
+boundary, Anti-Equivalence failure, and the inconclusive Phase 2 pilot. The full
+synthesis, including the failed endpoints and the caveats, is in
 [`docs/CHAPTER-SUMMARY.md`](docs/CHAPTER-SUMMARY.md).
 
 ![Same state under two nuisance styles](snapshots/overview.png)
@@ -276,6 +284,8 @@ docs/PREREG-LEGATES-V2.md soft-gate + anchor protocol
 docs/PREREG-LEGATES-V3.md hard-gate protocol
 docs/PREREG-ASYMMETRY.md  anti-equivalence / one-way-door protocol
 docs/COLLISION-4.md       anti-equivalence result
+docs/PREREG-PHASE2.md     partial observation / matched heads / planner
+docs/PHASE2-PILOT.md      Phase 2 pilot (inconclusive)
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

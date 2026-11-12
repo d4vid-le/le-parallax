@@ -24,13 +24,22 @@ import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from leparallax.data import build_temporal_samples, collate_temporal, history_obs
+from leparallax.data import (
+    build_temporal_samples,
+    collate_temporal,
+    goal_obs,
+    history_obs,
+)
 from leparallax.model import JEPA, SIGReg, make_loss
 from leparallax.probes import _ridge_eval
 from leparallax.train import load_jepa
 from leparallax.world import HISTORY, generate_episodes, history_indices, render_state
 
-ARM_NAMES = ["temporal", "symmetric", "asym", "asym_vol", "asym_wrong"]
+ARM_NAMES = [
+    "temp_matched", "sym_head", "asym_clean", "asym_vol_bounded",
+    "temporal", "symmetric", "asym", "asym_vol", "asym_wrong",
+]
+PHASE2_ARMS = ["temp_matched", "sym_head", "asym_clean", "asym_vol_bounded"]
 
 
 class PairHeads(nn.Module):
@@ -63,7 +72,14 @@ def log_volume(z: mx.array, eps: float = 1e-3) -> mx.array:
     return mx.mean(mx.log(mx.var(z, axis=0) + eps))
 
 
-def build_pairs(episodes, irreversible: bool = True):
+def variance_floor(z: mx.array, gamma: float = 1.0) -> mx.array:
+    """VICReg-style floor: every dimension must have std >= gamma."""
+    std = mx.sqrt(mx.var(z, axis=0) + 1e-4)
+    return mx.mean(mx.maximum(gamma - std, 0.0))
+
+
+def build_pairs(episodes, irreversible: bool = True,
+                post_offsets: tuple[int, ...] = (2, 4)):
     pairs = []
     for ep in episodes:
         sides = ep.states[:, 0] >= 0.5
@@ -73,7 +89,7 @@ def build_pairs(episodes, irreversible: bool = True):
         t = int(crossings[0])
         if irreversible:
             for pre in (2, 4):
-                for post in (2, 4):
+                for post in post_offsets:
                     ta = max(0, t - pre)
                     tb = min(len(ep.states) - 1, t + post)
                     if ta >= tb:
@@ -115,21 +131,13 @@ def collate_pairs(pairs, idx):
 
 
 def build_probe(episodes):
-    obs, goal_obs, states, door, side, reach = [], [], [], [], [], []
+    obs, goal_obs_list, states, door, side, reach = [], [], [], [], [], []
     for ep in episodes:
-        goal_state = np.array(
-            [ep.goal[0], ep.goal[1], 0.0, 0.0], dtype=np.float32
-        )
+        g_obs = goal_obs(ep)
         for t in range(len(ep.states)):
             obs.append(ep.frames[history_indices(t)])
             door_t = bool(ep.door_open[t])
-            goal_obs.append(np.stack([
-                render_state(
-                    goal_state, ep.goal, ep.nuisance, size=96,
-                    door_open=door_t,
-                )
-                for _ in range(HISTORY)
-            ]))
+            goal_obs_list.append(g_obs)
             states.append(ep.states[t])
             door.append(door_t)
             s = bool(ep.states[t, 0] >= 0.5)
@@ -138,7 +146,7 @@ def build_probe(episodes):
             reach.append(door_t or (s == g))
     return (
         np.stack(obs).astype(np.float32) / 255.0,
-        np.stack(goal_obs).astype(np.float32) / 255.0,
+        np.stack(goal_obs_list).astype(np.float32) / 255.0,
         np.stack(states).astype(np.float32),
         np.array(door, dtype=np.float32),
         np.array(side, dtype=np.float32),
@@ -218,7 +226,8 @@ def auc(pos: np.ndarray, neg: np.ndarray) -> float:
 
 def train_arm(model, temporal_samples, pairs, arm: str, epochs: int,
               batch_size: int, pair_batch: int, lr: float, seed: int,
-              lambda_vol: float, pair_weight: float = 0.25,
+              lambda_vol: float, lambda_var: float = 1.0,
+              pair_weight: float = 0.25,
               state_weight: float = 0.25, warmup: int = 5,
               verbose: bool = True):
     base_loss = make_loss(SIGReg(), 0.09)
@@ -231,7 +240,7 @@ def train_arm(model, temporal_samples, pairs, arm: str, epochs: int,
         base = base_loss(
             model.jepa, obs, act, nxt, state, act2, nxt2, state2
         )
-        if arm == "temporal" or pw[0] == 0.0:
+        if arm in ("temporal", "temp_matched") or pw[0] == 0.0:
             return base
         za = model.jepa.encode(oa)
         zb = model.jepa.encode(ob)
@@ -242,10 +251,27 @@ def train_arm(model, temporal_samples, pairs, arm: str, epochs: int,
         if arm == "symmetric":
             pair = mx.mean((za - zb) ** 2)
             return base + pw[0] * pair + sw[0] * state_pair
+        if arm == "sym_head":
+            # Same heads, same capacity, but both directions for both heads.
+            pair = 0.5 * (
+                mx.mean((model.heads.forward(za) - zb) ** 2)
+                + mx.mean((model.heads.forward(zb) - za) ** 2)
+                + mx.mean((model.heads.reverse(zb) - za) ** 2)
+                + mx.mean((model.heads.reverse(za) - zb) ** 2)
+            )
+            return base + pw[0] * pair + sw[0] * state_pair
         pair = (
             mx.mean((model.heads.forward(za) - zb) ** 2)
             + mx.mean((model.heads.reverse(zb) - za) ** 2)
         )
+        if arm in ("asym", "asym_clean"):
+            return base + pw[0] * pair + sw[0] * state_pair
+        if arm == "asym_vol_bounded":
+            return (
+                base + pw[0] * pair + sw[0] * state_pair
+                + lambda_vol * log_volume(zb)
+                + lambda_var * variance_floor(zb)
+            )
         return (
             base + pw[0] * pair + sw[0] * state_pair
             + lambda_vol * log_volume(zb)
@@ -398,11 +424,14 @@ def main():
     ap.add_argument("--pair-batch", type=int, default=64)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--lambda-vol", type=float, default=0.05)
+    ap.add_argument("--lambda-var", type=float, default=1.0)
     ap.add_argument("--pair-weight", type=float, default=0.25)
     ap.add_argument("--state-weight", type=float, default=0.25)
     ap.add_argument("--warmup", type=int, default=5)
+    ap.add_argument("--post-offsets", type=int, nargs="+", default=[2, 4])
+    ap.add_argument("--occlude-door-right", action="store_true")
     ap.add_argument("--eval-only", action="store_true")
-    ap.add_argument("--arms", nargs="+", default=ARM_NAMES)
+    ap.add_argument("--arms", nargs="+", default=PHASE2_ARMS)
     ap.add_argument("--out", default="runs/asymmetry")
     args = ap.parse_args()
 
@@ -420,13 +449,20 @@ def main():
         train_eps = generate_episodes(
             n=args.train_episodes, steps=args.steps, size=96, seed=seed,
             goal_directed=0.5, nuisance_mode="normal", one_way_door=True,
+            occlude_door_right=args.occlude_door_right,
         )
         test_eps = generate_episodes(
             n=args.test_episodes, steps=args.steps, size=96, seed=9000 + seed,
             goal_directed=0.5, nuisance_mode="normal", one_way_door=True,
+            occlude_door_right=args.occlude_door_right,
         )
-        train_irr = build_pairs(train_eps, irreversible=True)
-        test_irr = build_pairs(test_eps, irreversible=True)
+        post_offsets = tuple(args.post_offsets)
+        train_irr = build_pairs(
+            train_eps, irreversible=True, post_offsets=post_offsets
+        )
+        test_irr = build_pairs(
+            test_eps, irreversible=True, post_offsets=post_offsets
+        )
         train_rev = build_pairs(train_eps, irreversible=False)
         test_rev = build_pairs(test_eps, irreversible=False)
         print(
@@ -454,10 +490,14 @@ def main():
             else:
                 mx.random.seed(seed)
                 jepa = JEPA(image_size=96)
-                heads = None if arm in ("temporal", "symmetric") else PairHeads()
+                heads = (
+                    None
+                    if arm in ("temporal", "temp_matched", "symmetric")
+                    else PairHeads()
+                )
                 model = ArmModel(jepa, heads)
                 vol = 0.0
-                if arm == "asym_vol":
+                if arm in ("asym_vol", "asym_vol_bounded"):
                     vol = args.lambda_vol
                 elif arm == "asym_wrong":
                     vol = -args.lambda_vol
@@ -466,6 +506,7 @@ def main():
                     model, temporal, train_irr, arm, epochs=args.epochs,
                     batch_size=args.batch_size, pair_batch=args.pair_batch,
                     lr=args.lr, seed=seed, lambda_vol=vol,
+                    lambda_var=args.lambda_var,
                     pair_weight=args.pair_weight,
                     state_weight=args.state_weight,
                     warmup=args.warmup,
