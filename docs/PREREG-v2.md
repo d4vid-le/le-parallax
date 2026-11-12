@@ -1,6 +1,6 @@
 # Pre-registration v2 — confirmatory H1
 
-**Status:** draft / to be frozen before the confirmatory run.
+**Status:** **FROZEN 2026-11-12.** Do not change after this commit.
 **Supersedes:** the H1 endpoint in `docs/PREREG.md`, which was written before the
 pilot. The original endpoint is retained in `HYPOTHESIS.md` for the record.
 

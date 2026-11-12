@@ -28,6 +28,7 @@ def train_jepa(
     lambda_view: float = 0.0,
     lambda_view_state: float = 0.25,
 ) -> JEPA:
+    mx.random.seed(seed)
     model = JEPA(image_size=image_size)
     sigreg = SIGReg()
     loss_fn = make_loss(sigreg, lambda_sig)
@@ -87,6 +88,7 @@ def train_jepa(
 
 
 def load_jepa(path: str | Path, image_size: int = 96) -> JEPA:
+    mx.random.seed(seed)
     model = JEPA(image_size=image_size)
     model.load_weights(str(path))
     return model
