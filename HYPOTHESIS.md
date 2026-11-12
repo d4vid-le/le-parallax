@@ -207,6 +207,17 @@ but not necessarily under a **dynamics shift**.
 **Falsifier.** No forgetting reduction under nuisance shift, or good views hurt
 adaptation to the new domain. Either outcome is informative.
 
+**Operationalization used.** The confirmatory experiment measured A/B **state
+probe R²**, not control success. The control pipeline became valid only in
+H2-v4; adding control retention would introduce another readout confound. This is
+the representation-level version of H3. Control retention is future work.
+
+**Confirmatory result (2026-11-12).** **PASS.** A-state R² after adaptation:
+good **+0.229** higher (95% CI **+0.161 to +0.298**), **5/5** seeds. Forgetting:
+temporal **0.132**, good **0.025** (~81% less). B post difference **+0.005** on
+average, but seed 4 pays a B-side cost (−0.162) while gaining the most on A
+(+0.347). See [`docs/H3-CONFIRM.md`](docs/H3-CONFIRM.md).
+
 **Why it matters.** This is the continual-learning link. If nuisance invariance
 makes nuisance shifts free, good views are a representation-level regularizer
 that composes with an adapter like Le-Gates for the dynamics. If not, the

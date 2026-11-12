@@ -159,11 +159,21 @@ metric that matters. H2-v4 is a success-primary replication on fresh episodes. S
 [`docs/H2V3-CONFIRM.md`](docs/H2V3-CONFIRM.md).
 
 **H2-v4 passes.** Success-primary replication on fresh episodes: good-view OOD
-success **88% vs 65%** (**+23 points**, 95% CI **+10 to +37**), **4/5 seeds**
+success **91% vs 68%** (**+23 points**, 95% CI **+10 to +37**), **4/5 seeds**
 positive, pooled McNemar **p = 0.0001**. OOD distance also improves (−0.036), and
 ID improves. The representation-to-control bridge holds under domain
-randomization. See [`docs/H2V4-CONFIRM.md`](docs/H2V4-CONFIRM.md). Next: H3,
-continual retention.
+randomization. See [`docs/H2V4-CONFIRM.md`](docs/H2V4-CONFIRM.md).
+
+**H3 passes at the representation level.** After adapting to the shifted
+nuisance, good-view A-state R² is **+0.229** higher (95% CI **+0.161 to +0.298**),
+**5/5** seeds; forgetting is **0.025 vs 0.132** (~81% less); B post is +0.005 on
+average. Forgetting is reduced, not eliminated, and seed 4 shows a real
+stability–plasticity trade-off (B −0.162 while A gains +0.347). See
+[`docs/H3-CONFIRM.md`](docs/H3-CONFIRM.md).
+
+**The chapter in three results:** mechanism (H1), control (H2-v4), retention
+(H3). The full synthesis, including the failed endpoints and the caveats, is in
+[`docs/CHAPTER-SUMMARY.md`](docs/CHAPTER-SUMMARY.md).
 
 ![Same state under two nuisance styles](snapshots/overview.png)
 

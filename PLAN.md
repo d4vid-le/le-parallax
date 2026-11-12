@@ -235,6 +235,11 @@ dynamics shift. The dissociation is the result.
 **Gate 4:** if forgetting is unchanged, representation invariance is not the
 lever; the next chapter should focus on adaptation. Write the negative.
 
+**H3 status (2026-11-12): PASS at the representation level.** A-state R² after
+adaptation is +0.229 higher (95% CI 0.161–0.298), 5/5 seeds; forgetting 0.025 vs
+0.132; B post +0.005 mean, with a seed-4 trade-off. Control retention (H3b) is
+still open. See [`docs/H3-CONFIRM.md`](docs/H3-CONFIRM.md).
+
 ---
 
 ## 8. Phase 4 — modular alignment (week 8, optional)
