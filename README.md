@@ -220,8 +220,13 @@ door occluded on the right and parameter-matched heads, `asym_clean` has
 **Δasym +0.146** vs `sym_head` **−0.055**, and the bounded-volume arm keeps
 latent std **1.044**. But state R² is **0.308 / 0.322** against the
 pre-registered **0.80** guardrail, and the planner AUC is **0.722** vs
-**0.750** for the symmetric head. The trial is **inconclusive**, not a
-confirmation. See [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md).
+**0.750** for the symmetric head. A tuning loop with a pre-merge frame state
+head and `λ_pair=0.08` raises pair-arm state R² to **0.670 / 0.671 / 0.695**
+and keeps the direction positive (`asym_clean` **+0.080** vs `sym_head`
+**−0.019**, margin +0.099), but the state guardrail still fails and the planner
+is flat. The trial is **inconclusive**, not a confirmation. See
+[`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md) and
+[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md).
 
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
@@ -286,6 +291,7 @@ docs/PREREG-ASYMMETRY.md  anti-equivalence / one-way-door protocol
 docs/COLLISION-4.md       anti-equivalence result
 docs/PREREG-PHASE2.md     partial observation / matched heads / planner
 docs/PHASE2-PILOT.md      Phase 2 pilot (inconclusive)
+docs/PHASE2-TUNING.md     lower pair pressure + pre-merge state head
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

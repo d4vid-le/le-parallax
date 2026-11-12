@@ -280,10 +280,13 @@ reachability AUC (0.670). Direction is not volume. See
 matching the head capacities flips the direction sign positive: `asym_clean`
 `Δasym` +0.146 vs `sym_head` −0.055, and the bounded-volume arm holds latent std
 1.044. But state R² falls to 0.308/0.322 against the pre-registered 0.8
-guardrail, and the planner AUC is 0.722 vs 0.750. The partial-observation
-manipulation is right; the model cannot hold state and irreversibility at this
-scale. The trial is suggestive, not confirmatory. See
-[`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md).
+guardrail, and the planner AUC is 0.722 vs 0.750. A pre-merge frame state head
+plus `λ_pair=0.08` raises pair-arm state R² to 0.670/0.671/0.695 and keeps the
+direction positive (+0.080 vs −0.019, margin +0.099), but the 0.80 guardrail and
+the +0.10 margin are still missed. The partial-observation manipulation is
+right; the model is at its capacity ceiling. The trial is suggestive, not
+confirmatory. See [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md) and
+[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md).
 
 ## 7. H4 — the transfer claim
 

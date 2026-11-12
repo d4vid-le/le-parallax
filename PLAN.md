@@ -263,7 +263,10 @@ are nuisance-specific, not dynamics-immune. See
 - **Phase 2 pilot:** the occluded door + matched heads flips the direction sign
   positive (`asym_clean` +0.146 vs `sym_head` −0.055) and the variance floor
   holds std 1.044, but state R² is 0.308/0.322 vs the 0.8 guardrail and the
-  planner AUC is 0.722 vs 0.750. Inconclusive, not confirmatory.
+  planner AUC is 0.722 vs 0.750. A pre-merge frame state head + `λ_pair=0.08`
+  raises state R² to 0.670–0.695 and keeps the direction positive (+0.080 vs
+  −0.019, margin +0.099), but the 0.80 guardrail and the +0.10 margin are still
+  missed. Inconclusive, not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

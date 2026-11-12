@@ -89,7 +89,8 @@ def train_jepa(
     return model
 
 
-def load_jepa(path: str | Path, image_size: int = 96) -> JEPA:
-    model = JEPA(image_size=image_size)
+def load_jepa(path: str | Path, image_size: int = 96,
+              frame_state_head: bool = False) -> JEPA:
+    model = JEPA(image_size=image_size, frame_state_head=frame_state_head)
     model.load_weights(str(path))
     return model

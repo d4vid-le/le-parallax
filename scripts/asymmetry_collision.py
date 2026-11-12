@@ -430,6 +430,7 @@ def main():
     ap.add_argument("--warmup", type=int, default=5)
     ap.add_argument("--post-offsets", type=int, nargs="+", default=[2, 4])
     ap.add_argument("--occlude-door-right", action="store_true")
+    ap.add_argument("--frame-state-head", action="store_true")
     ap.add_argument("--eval-only", action="store_true")
     ap.add_argument("--arms", nargs="+", default=PHASE2_ARMS)
     ap.add_argument("--out", default="runs/asymmetry")
@@ -484,12 +485,16 @@ def main():
                     load_jepa(
                         str(out / "models" / f"s{seed}-{arm}.safetensors"),
                         image_size=96,
+                        frame_state_head=args.frame_state_head,
                     ),
                     None,
                 )
             else:
                 mx.random.seed(seed)
-                jepa = JEPA(image_size=96)
+                jepa = JEPA(
+                    image_size=96,
+                    frame_state_head=args.frame_state_head,
+                )
                 heads = (
                     None
                     if arm in ("temporal", "temp_matched", "symmetric")

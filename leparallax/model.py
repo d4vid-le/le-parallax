@@ -31,7 +31,7 @@ class FrameEncoder(nn.Module):
         self.out = nn.Linear(128, latent_dim)
         self.out_ln = nn.LayerNorm(latent_dim)
 
-    def __call__(self, x: mx.array) -> mx.array:
+    def features(self, x: mx.array) -> mx.array:
         x = nn.relu(self.conv1(x))
         x = nn.relu(self.conv2(x))
         x = nn.relu(self.conv3(x))
@@ -44,8 +44,10 @@ class FrameEncoder(nn.Module):
         ey = mx.sum(att * ys[None, None, :, None], axis=2)
         ey = mx.sum(ey, axis=1)
         x = mx.concatenate([ex, ey], axis=-1)
-        x = nn.relu(self.ln(self.fc(x)))
-        return self.out_ln(self.out(x))
+        return nn.relu(self.ln(self.fc(x)))
+
+    def __call__(self, x: mx.array) -> mx.array:
+        return self.out_ln(self.out(self.features(x)))
 
 
 class Encoder(nn.Module):
@@ -64,6 +66,10 @@ class Encoder(nn.Module):
         z = self.frame(x).reshape(b, -1)
         return self.ln(self.merge(z))
 
+    def frame_features(self, obs: mx.array) -> mx.array:
+        """Features of the current (last) frame, before history merge."""
+        return self.frame.features(obs[:, -1])
+
 
 class Predictor(nn.Module):
     def __init__(self, latent_dim: int = LATENT_DIM, action_dim: int = 2):
@@ -81,15 +87,22 @@ class Predictor(nn.Module):
 
 
 class JEPA(nn.Module):
-    def __init__(self, latent_dim: int = LATENT_DIM, image_size: int = IMAGE_SIZE):
+    def __init__(self, latent_dim: int = LATENT_DIM, image_size: int = IMAGE_SIZE,
+                 frame_state_head: bool = False):
         super().__init__()
         self.latent_dim = latent_dim
         self.encoder = Encoder(latent_dim, image_size=image_size)
         self.predictor = Predictor(latent_dim)
         self.state_head = nn.Linear(latent_dim, 4)
+        # Optional auxiliary head on the current-frame keypoint features, before
+        # the history merge and before any asymmetric pair head.
+        self.frame_state_head = nn.Linear(128, 4) if frame_state_head else None
 
     def encode(self, obs: mx.array) -> mx.array:
         return self.encoder(obs)
+
+    def encode_frame_features(self, obs: mx.array) -> mx.array:
+        return self.encoder.frame_features(obs)
 
     def predict(self, z: mx.array, action: mx.array) -> mx.array:
         return self.predictor(z, action)
@@ -150,7 +163,7 @@ def contrastive_term(z_pred: mx.array, z_next: mx.array,
 def make_loss(sigreg: SIGReg, lambda_sig: float = 0.09,
               lambda_var: float = 0.10, lambda_cov: float = 0.01,
               lambda_con: float = 0.10, lambda_state: float = 0.50,
-              lambda_multi: float = 0.50):
+              lambda_multi: float = 0.50, lambda_frame_state: float = 0.50):
     def loss_fn(model: JEPA, obs, action, next_obs, state,
                 action2, next_next_obs, state2):
         z = model.encode(obs)
@@ -168,9 +181,16 @@ def make_loss(sigreg: SIGReg, lambda_sig: float = 0.09,
         con = contrastive_term(z_pred, z_next)
         state_loss = mx.mean((model.state_head(z) - state) ** 2)
         state2_loss = mx.mean((model.state_head(z2_pred) - state2) ** 2)
+        frame_state_loss = 0.0
+        if model.frame_state_head is not None:
+            ff = model.encode_frame_features(obs)
+            frame_state_loss = mx.mean(
+                (model.frame_state_head(ff) - state) ** 2
+            )
         return (pred + lambda_multi * pred2
                 + lambda_sig * reg + lambda_var * var
                 + lambda_cov * cov + lambda_con * con
-                + lambda_state * (state_loss + 0.5 * state2_loss))
+                + lambda_state * (state_loss + 0.5 * state2_loss)
+                + lambda_frame_state * frame_state_loss)
 
     return loss_fn

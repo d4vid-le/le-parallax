@@ -72,6 +72,7 @@ def main():
     ap.add_argument("--test-episodes", type=int, default=20)
     ap.add_argument("--n-samples", type=int, default=64)
     ap.add_argument("--horizon", type=int, default=6)
+    ap.add_argument("--frame-state-head", action="store_true")
     args = ap.parse_args()
 
     out = pathlib.Path(args.out)
@@ -89,7 +90,10 @@ def main():
             if not path.exists():
                 print("  missing", path, flush=True)
                 continue
-            model = load_jepa(str(path), image_size=96)
+            model = load_jepa(
+                str(path), image_size=96,
+                frame_state_head=args.frame_state_head,
+            )
             reachable, unreachable = [], []
             for ep in left_goal:
                 sides = ep.states[:, 0] >= 0.5
