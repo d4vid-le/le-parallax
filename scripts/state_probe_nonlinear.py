@@ -77,6 +77,8 @@ def main():
     ap.add_argument("--test-episodes", type=int, default=20)
     ap.add_argument("--features", type=int, default=512)
     ap.add_argument("--frame-state-head", action="store_true")
+    ap.add_argument("--latent-dim", type=int, default=64)
+    ap.add_argument("--width", type=float, default=1.0)
     args = ap.parse_args()
 
     out = pathlib.Path(args.out)
@@ -102,6 +104,8 @@ def main():
             model = load_jepa(
                 str(path), image_size=96,
                 frame_state_head=args.frame_state_head,
+                latent_dim=args.latent_dim,
+                width=args.width,
             )
             Ztr = encode(model, obs_tr)
             Zte = encode(model, obs_te)

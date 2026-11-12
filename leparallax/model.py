@@ -17,18 +17,24 @@ IMAGE_SIZE = 96
 
 
 class FrameEncoder(nn.Module):
-    def __init__(self, latent_dim: int = LATENT_DIM, image_size: int = IMAGE_SIZE):
+    def __init__(self, latent_dim: int = LATENT_DIM, image_size: int = IMAGE_SIZE,
+                 width: float = 1.0):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 32, 4, stride=2, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, 4, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(64, 64, 3, stride=1, padding=1)
+        c1 = max(1, int(32 * width))
+        c2 = max(1, int(64 * width))
+        c3 = max(1, int(64 * width))
+        feat = 2 * c3
+        self.feat_dim = feat
+        self.conv1 = nn.Conv2d(3, c1, 4, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(c1, c2, 4, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(c2, c3, 3, stride=1, padding=1)
         # Three stride-2 convolutions: size -> size/2 -> size/4 -> size/8.
         grid = image_size // 4
         self.grid = grid
         # Spatial softmax: one expected (x, y) per conv channel.
-        self.fc = nn.Linear(128, 128)
-        self.ln = nn.LayerNorm(128)
-        self.out = nn.Linear(128, latent_dim)
+        self.fc = nn.Linear(feat, feat)
+        self.ln = nn.LayerNorm(feat)
+        self.out = nn.Linear(feat, latent_dim)
         self.out_ln = nn.LayerNorm(latent_dim)
 
     def features(self, x: mx.array) -> mx.array:
@@ -52,10 +58,10 @@ class FrameEncoder(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self, latent_dim: int = LATENT_DIM, history: int = HISTORY,
-                 image_size: int = IMAGE_SIZE):
+                 image_size: int = IMAGE_SIZE, width: float = 1.0):
         super().__init__()
         self.history = history
-        self.frame = FrameEncoder(latent_dim, image_size)
+        self.frame = FrameEncoder(latent_dim, image_size, width=width)
         self.merge = nn.Linear(history * latent_dim, latent_dim)
         self.ln = nn.LayerNorm(latent_dim)
 
@@ -72,11 +78,13 @@ class Encoder(nn.Module):
 
 
 class Predictor(nn.Module):
-    def __init__(self, latent_dim: int = LATENT_DIM, action_dim: int = 2):
+    def __init__(self, latent_dim: int = LATENT_DIM, action_dim: int = 2,
+                 hidden: int | None = None):
         super().__init__()
-        self.fc1 = nn.Linear(latent_dim + action_dim, 128)
-        self.fc2 = nn.Linear(128, 128)
-        self.fc3 = nn.Linear(128, latent_dim)
+        hidden = max(128, latent_dim * 2) if hidden is None else hidden
+        self.fc1 = nn.Linear(latent_dim + action_dim, hidden)
+        self.fc2 = nn.Linear(hidden, hidden)
+        self.fc3 = nn.Linear(hidden, latent_dim)
 
     def __call__(self, z: mx.array, action: mx.array) -> mx.array:
         x = mx.concatenate([z, action], axis=-1)
@@ -88,15 +96,20 @@ class Predictor(nn.Module):
 
 class JEPA(nn.Module):
     def __init__(self, latent_dim: int = LATENT_DIM, image_size: int = IMAGE_SIZE,
-                 frame_state_head: bool = False):
+                 frame_state_head: bool = False, width: float = 1.0):
         super().__init__()
         self.latent_dim = latent_dim
-        self.encoder = Encoder(latent_dim, image_size=image_size)
+        self.encoder = Encoder(
+            latent_dim, image_size=image_size, width=width
+        )
         self.predictor = Predictor(latent_dim)
         self.state_head = nn.Linear(latent_dim, 4)
         # Optional auxiliary head on the current-frame keypoint features, before
         # the history merge and before any asymmetric pair head.
-        self.frame_state_head = nn.Linear(128, 4) if frame_state_head else None
+        self.frame_state_head = (
+            nn.Linear(self.encoder.frame.feat_dim, 4)
+            if frame_state_head else None
+        )
 
     def encode(self, obs: mx.array) -> mx.array:
         return self.encoder(obs)

@@ -282,11 +282,14 @@ matching the head capacities flips the direction sign positive: `asym_clean`
 1.044. But state R² falls to 0.308/0.322 against the pre-registered 0.8
 guardrail, and the planner AUC is 0.722 vs 0.750. A pre-merge frame state head
 plus `λ_pair=0.08` raises pair-arm state R² to 0.670/0.671/0.695 and keeps the
-direction positive (+0.080 vs −0.019, margin +0.099), but the 0.80 guardrail and
-the +0.10 margin are still missed. The partial-observation manipulation is
-right; the model is at its capacity ceiling. The trial is suggestive, not
-confirmatory. See [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md) and
-[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md).
+direction positive (+0.080 vs −0.019, margin +0.099). An expanded 340k model at
+60 epochs with cosine decay is worse: state R² 0.610/0.509/0.662/0.623,
+direction margin −0.009, bounded std 0.882. The partial-observation manipulation
+is right, but capacity is not the state bottleneck, and the 0.80 guardrail and
++0.10 margin are still missed. The trial is suggestive, not confirmatory. See
+[`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
+[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md), and
+[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md).
 
 ## 7. H4 — the transfer claim
 

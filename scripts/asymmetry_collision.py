@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import pathlib
 import sys
 import time
@@ -43,10 +44,15 @@ PHASE2_ARMS = ["temp_matched", "sym_head", "asym_clean", "asym_vol_bounded"]
 
 
 class PairHeads(nn.Module):
-    def __init__(self, latent_dim: int = 64, reverse_hidden: int = 32):
+    def __init__(self, latent_dim: int = 64, reverse_hidden: int = 32,
+                 forward_hidden: int | None = None):
         super().__init__()
-        self.g1 = nn.Linear(latent_dim, 128)
-        self.g2 = nn.Linear(128, latent_dim)
+        forward_hidden = (
+            max(128, latent_dim * 2) if forward_hidden is None
+            else forward_hidden
+        )
+        self.g1 = nn.Linear(latent_dim, forward_hidden)
+        self.g2 = nn.Linear(forward_hidden, latent_dim)
         self.h1 = nn.Linear(latent_dim, reverse_hidden)
         self.h2 = nn.Linear(reverse_hidden, latent_dim)
 
@@ -164,6 +170,16 @@ def encode_all(model, obs, batch: int = 64) -> np.ndarray:
     return np.concatenate(out)
 
 
+def encode_frame_all(model, obs, batch: int = 64) -> np.ndarray:
+    out = []
+    for start in range(0, len(obs), batch):
+        idx = np.arange(start, min(start + batch, len(obs)))
+        z = model.jepa.encode_frame_features(mx.array(obs[idx]))
+        mx.eval(z)
+        out.append(np.array(z))
+    return np.concatenate(out)
+
+
 def effective_rank(Z: np.ndarray) -> float:
     Zc = Z - Z.mean(axis=0, keepdims=True)
     cov = Zc.T @ Zc / max(len(Z) - 1, 1)
@@ -229,8 +245,9 @@ def train_arm(model, temporal_samples, pairs, arm: str, epochs: int,
               lambda_vol: float, lambda_var: float = 1.0,
               pair_weight: float = 0.25,
               state_weight: float = 0.25, warmup: int = 5,
+              latent_dim: int = 64, cosine: bool = False,
               verbose: bool = True):
-    base_loss = make_loss(SIGReg(), 0.09)
+    base_loss = make_loss(SIGReg(dim=latent_dim), 0.09)
     rng = np.random.default_rng(seed)
     pw = [0.0]
     sw = [0.0]
@@ -281,6 +298,11 @@ def train_arm(model, temporal_samples, pairs, arm: str, epochs: int,
     optimizer = optim.AdamW(learning_rate=lr, weight_decay=1e-4)
     n = len(temporal_samples)
     for epoch in range(1, epochs + 1):
+        if cosine:
+            lr_t = lr * 0.5 * (
+                1.0 + math.cos(math.pi * (epoch - 1) / max(epochs - 1, 1))
+            )
+            optimizer.learning_rate = lr_t
         pw[0] = 0.0 if epoch <= warmup else pair_weight
         sw[0] = 0.0 if epoch <= warmup else state_weight
         perm = rng.permutation(n)
@@ -363,6 +385,17 @@ def evaluate(model, train_irr, test_irr, train_rev, test_rev,
     state_r2 = float(np.mean(_ridge_eval(
         Zstate_tr, s_tr, Zstate_te, s_te
     )))
+    FFtr = encode_frame_all(model, obs_tr)
+    FFte = encode_frame_all(model, obs_te)
+    frame_probe_r2 = float(np.mean(_ridge_eval(FFtr, s_tr, FFte, s_te)))
+    frame_head_r2 = float("nan")
+    if model.jepa.frame_state_head is not None:
+        pred = np.array(
+            model.jepa.frame_state_head(mx.array(FFte))
+        )
+        ss_res = ((s_te - pred) ** 2).sum(axis=0)
+        ss_tot = ((s_te - s_te.mean(axis=0)) ** 2).sum(axis=0)
+        frame_head_r2 = float(np.mean(1.0 - ss_res / (ss_tot + 1e-8)))
     door_auc = ridge_auc(Ztr, door_tr, Zte, door_te)
     side_auc = ridge_auc(Ztr, side_tr, Zte, side_te)
     reach_auc = ridge_auc(Ztr, reach_tr, Zte, reach_te)
@@ -406,6 +439,8 @@ def evaluate(model, train_irr, test_irr, train_rev, test_rev,
         "latent_norm": float(np.mean(np.linalg.norm(Zstate_te, axis=1))),
         "latent_std": float(np.mean(np.std(Zstate_te, axis=0))),
         "state_r2": state_r2,
+        "frame_probe_r2": frame_probe_r2,
+        "frame_head_r2": frame_head_r2,
         "door_auc": door_auc, "side_auc": side_auc, "reach_auc": reach_auc,
         "norm_reach": norm_reach, "norm_unreach": norm_unreach,
         "norm_auc": norm_auc, "rank_reach": rank_reach,
@@ -431,6 +466,9 @@ def main():
     ap.add_argument("--post-offsets", type=int, nargs="+", default=[2, 4])
     ap.add_argument("--occlude-door-right", action="store_true")
     ap.add_argument("--frame-state-head", action="store_true")
+    ap.add_argument("--latent-dim", type=int, default=64)
+    ap.add_argument("--width", type=float, default=1.0)
+    ap.add_argument("--cosine", action="store_true")
     ap.add_argument("--eval-only", action="store_true")
     ap.add_argument("--arms", nargs="+", default=PHASE2_ARMS)
     ap.add_argument("--out", default="runs/asymmetry")
@@ -486,6 +524,8 @@ def main():
                         str(out / "models" / f"s{seed}-{arm}.safetensors"),
                         image_size=96,
                         frame_state_head=args.frame_state_head,
+                        latent_dim=args.latent_dim,
+                        width=args.width,
                     ),
                     None,
                 )
@@ -494,11 +534,13 @@ def main():
                 jepa = JEPA(
                     image_size=96,
                     frame_state_head=args.frame_state_head,
+                    latent_dim=args.latent_dim,
+                    width=args.width,
                 )
                 heads = (
                     None
                     if arm in ("temporal", "temp_matched", "symmetric")
-                    else PairHeads()
+                    else PairHeads(latent_dim=args.latent_dim)
                 )
                 model = ArmModel(jepa, heads)
                 vol = 0.0
@@ -515,6 +557,8 @@ def main():
                     pair_weight=args.pair_weight,
                     state_weight=args.state_weight,
                     warmup=args.warmup,
+                    latent_dim=args.latent_dim,
+                    cosine=args.cosine,
                 )
             metrics = evaluate(
                 model, train_irr, test_irr, train_rev, test_rev,
@@ -540,8 +584,8 @@ def main():
     lines = [
         "# Anti-Equivalence collision — one-way door",
         "",
-        "| arm | asym irr | asym rev | Δasym | ΔΔrank | ΔΔres | state R² | reach AUC | latent std | norm A/B |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| arm | asym irr | asym rev | Δasym | ΔΔrank | ΔΔres | state R² | frame probe R² | frame head R² | reach AUC | latent std | norm A/B |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for arm in args.arms:
         rs = [r for r in rows if r["arm"] == arm]
@@ -552,6 +596,7 @@ def main():
             f"| {arm} | {m('asym_irr'):.3f} | {m('asym_rev'):.3f} | "
             f"{m('delta_asym'):+.3f} | {m('delta_delta_rank'):+.3f} | "
             f"{m('delta_delta_residual'):+.3f} | {m('state_r2'):.3f} | "
+            f"{m('frame_probe_r2'):.3f} | {m('frame_head_r2'):.3f} | "
             f"{m('reach_auc'):.3f} | {m('latent_std'):.3f} | "
             f"{m('norm_a_irr'):.2f}/{m('norm_b_irr'):.2f} |"
         )

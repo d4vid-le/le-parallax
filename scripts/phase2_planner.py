@@ -73,6 +73,8 @@ def main():
     ap.add_argument("--n-samples", type=int, default=64)
     ap.add_argument("--horizon", type=int, default=6)
     ap.add_argument("--frame-state-head", action="store_true")
+    ap.add_argument("--latent-dim", type=int, default=64)
+    ap.add_argument("--width", type=float, default=1.0)
     args = ap.parse_args()
 
     out = pathlib.Path(args.out)
@@ -93,6 +95,8 @@ def main():
             model = load_jepa(
                 str(path), image_size=96,
                 frame_state_head=args.frame_state_head,
+                latent_dim=args.latent_dim,
+                width=args.width,
             )
             reachable, unreachable = [], []
             for ep in left_goal:

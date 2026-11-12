@@ -408,6 +408,7 @@ the isolation.
 | Anti-Equivalence | Volume arm Δasym +7.32 but forward R² 0.184 / reverse R² −5.08, latent std 0.599; asym Δasym −0.115 vs symmetric −0.013, lower 4/5; wrong-sign reach AUC 0.670 | The determinant penalty collapses; the matched control removes the direction effect; the wrong-sign control gets the same reachability gain |
 | Phase 2 pilot | Occluded door flips the direction positive (+0.146 vs −0.055), but state R² is 0.308 vs the 0.8 guardrail; planner AUC 0.722 vs 0.750 | Partial observation is the right manipulation, but the pair loss/capacity is the bottleneck; not confirmatory |
 | Phase 2 tuning | Pre-merge state head + `λ_pair=0.08`: state R² 0.670–0.695, direction +0.080 vs −0.019 (margin +0.099); still <0.8, planner flat | The decoupling fix works; the model is at its capacity ceiling; not confirmatory |
+| Phase 2 capacity | 340k params, 60 epochs: state R² 0.610–0.662, direction margin −0.009, bounded std 0.882; frame probe R² negative, frame head 0.24–0.31 | More capacity did not fix state; the merged latent/observation is the bottleneck; the 5-seed matrix is not justified |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -492,9 +493,13 @@ weight. A follow-up tuning loop — a pre-merge frame state head and
 `λ_pair=0.08` — raises pair-arm state R² to **0.670 / 0.671 / 0.695** and keeps
 the direction positive (`asym_clean` **+0.080** vs `sym_head` **−0.019**, a
 +0.099 margin), but the state guardrail still fails and the planner does not
-improve. The five-seed run is not started. See
-[`PHASE2-PILOT.md`](PHASE2-PILOT.md) and
-[`PHASE2-TUNING.md`](PHASE2-TUNING.md).
+improve. An expanded **340,784-parameter** model at 60 epochs with cosine decay
+was worse, not better: state R² **0.610 / 0.509 / 0.662 / 0.623**, direction
+margin **−0.009**, bounded std **0.882**. Capacity is not the state bottleneck;
+the five-seed run is not started. See
+[`PHASE2-PILOT.md`](PHASE2-PILOT.md),
+[`PHASE2-TUNING.md`](PHASE2-TUNING.md), and
+[`PHASE2-CAPACITY.md`](PHASE2-CAPACITY.md).
 
 ### 6.4 Why the effect appears in control only after domain randomization
 
@@ -573,6 +578,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Anti-Equivalence | `scripts/asymmetry_collision.py` | `docs/PREREG-ASYMMETRY.md` |
 | Phase 2 pilot | `scripts/asymmetry_collision.py`, `scripts/phase2_planner.py` | `docs/PREREG-PHASE2.md` |
 | Phase 2 tuning | `scripts/asymmetry_collision.py`, `scripts/state_probe_nonlinear.py` | `docs/PHASE2-TUNING.md` |
+| Phase 2 capacity | `scripts/asymmetry_collision.py` | `docs/PHASE2-CAPACITY.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -623,6 +629,7 @@ Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 | Phase 2 variance floor | `gamma=1.0`, weight 1.0 |
 | Phase 2 planner | 64 random shots + controller, horizon 6, threshold p90 reachable |
 | Phase 2 tuning | pre-merge 128→4 state head; `λ_pair=0.08`, `λ_var=0.2`, 40 epochs |
+| Phase 2 capacity | 340,784 params, latent 128, width 1.25; 60 epochs cosine; `λ_pair=0.10`, `λ_var=0.10` |
 
 ## References
 

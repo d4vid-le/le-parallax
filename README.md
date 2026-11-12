@@ -224,9 +224,12 @@ pre-registered **0.80** guardrail, and the planner AUC is **0.722** vs
 head and `λ_pair=0.08` raises pair-arm state R² to **0.670 / 0.671 / 0.695**
 and keeps the direction positive (`asym_clean` **+0.080** vs `sym_head`
 **−0.019**, margin +0.099), but the state guardrail still fails and the planner
-is flat. The trial is **inconclusive**, not a confirmation. See
-[`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md) and
-[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md).
+is flat. The expanded **340,784-parameter** model at 60 epochs was worse: state
+R² **0.610–0.662**, direction margin **−0.009**, bounded std **0.882**. Capacity
+is not the state bottleneck, so the five-seed matrix is **not** started. See
+[`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
+[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md), and
+[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md).
 
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
@@ -292,6 +295,7 @@ docs/COLLISION-4.md       anti-equivalence result
 docs/PREREG-PHASE2.md     partial observation / matched heads / planner
 docs/PHASE2-PILOT.md      Phase 2 pilot (inconclusive)
 docs/PHASE2-TUNING.md     lower pair pressure + pre-merge state head
+docs/PHASE2-CAPACITY.md   expanded 340k model / 60-epoch sweep
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

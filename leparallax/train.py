@@ -90,7 +90,11 @@ def train_jepa(
 
 
 def load_jepa(path: str | Path, image_size: int = 96,
-              frame_state_head: bool = False) -> JEPA:
-    model = JEPA(image_size=image_size, frame_state_head=frame_state_head)
+              frame_state_head: bool = False, latent_dim: int = 64,
+              width: float = 1.0) -> JEPA:
+    model = JEPA(
+        image_size=image_size, frame_state_head=frame_state_head,
+        latent_dim=latent_dim, width=width,
+    )
     model.load_weights(str(path))
     return model

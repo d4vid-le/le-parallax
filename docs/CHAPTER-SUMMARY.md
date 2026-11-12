@@ -70,6 +70,7 @@ The one-line story:
 | **Anti-Equivalence** | One-way door; volume arm Δasym +7.32 but forward R² 0.184 / reverse R² −5.08 and latent std 0.599; asym Δasym −0.115 vs symmetric −0.013, lower on 4/5 seeds; wrong-sign reach AUC 0.670. | The determinant penalty collapses; the matched reversible control removes the direction effect; the wrong-sign control gets the same reachability gain. Direction is not volume. |
 | **Phase 2 pilot** | Occluded door + matched heads; `asym_clean` Δasym +0.146 vs `sym_head` −0.055, bounded-volume std 1.044, but state R² 0.308/0.322 vs the 0.8 guardrail and planner AUC 0.722/0.750. | The partial-observation manipulation is right and the direction signal flips positive, but the pair loss/capacity is the bottleneck. Inconclusive, not confirmatory. |
 | **Phase 2 tuning** | Pre-merge frame state head + `λ_pair=0.08`: state R² 0.670/0.671/0.695, direction +0.080 vs −0.019 (margin +0.099), planner 0.694/0.694/0.750. | The decoupling fix nearly balances state and direction, but the 0.8 state guardrail and the +0.10 direction margin are still missed. Not confirmatory. |
+| **Phase 2 capacity** | 340k params, 60 epochs, cosine, `λ_pair=0.10`, `λ_var=0.10`: state R² 0.610/0.509/0.662/0.623, direction margin −0.009, bounded std 0.882; frame probe R² negative, frame head 0.24–0.31. | More capacity did not fix state; the merged latent/observation is the bottleneck. The 5-seed matrix is not justified. |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -123,7 +124,9 @@ credible.
   direction effect.
 - A definitive confirmation from Phase 2. The occluded-door pilot flips the
   direction sign positive but fails the state R² guardrail (0.308/0.322 vs 0.8)
-  and does not improve the planner. It is suggestive, not confirmatory.
+  and does not improve the planner. The frame-head tuning gets to 0.670–0.695,
+  and the expanded 340k model is worse (0.610–0.662, margin −0.009). It is
+  suggestive, not confirmatory.
 - A general claim about all world models. This is one synthetic world, one small
   model, five seeds.
 - Full H1 as pre-registered. H1b failed literally.
