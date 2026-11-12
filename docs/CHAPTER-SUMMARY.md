@@ -73,6 +73,7 @@ The one-line story:
 | **Phase 2 capacity** | 340k params, 60 epochs, cosine, `λ_pair=0.10`, `λ_var=0.10`: state R² 0.610/0.509/0.662/0.623, direction margin −0.009, bounded std 0.882; frame probe R² negative, frame head 0.24–0.31. | More capacity did not fix state; the merged latent/observation is the bottleneck. The 5-seed matrix is not justified. |
 | **Phase 2 oracle** | 46,830-param CNN, same 3-frame observations | 4-D state R² | oracle **0.935** (x,y **0.978**) vs JEPA **0.671**; adjusted guardrail **0.842**; SG MLP **0.564** vs linear **0.671** | `docs/PHASE2-ORACLE.md` |
 | **Dual-stream pilot** | Frozen 47k state stream + 142k JEPA streams with no state loss; state-dynamics + JEPA shooting planner | state R², Δasym, planner AUC | state **0.936** passes; JEPA direction margin **+0.018**; planner **0.500** vs state-only **0.611** | `docs/DUAL-STREAM-PILOT.md` |
+| **Hypothesis A** | Discriminative reachability classifier on frozen dual-stream latents | AUC, abort, false abort | combined **1.000/1.00/0.03–0.05**, but state-only same and JEPA-only **0.285/0.874/0.290**; pass is the side+goal shortcut | `docs/HYPOTHESIS-A.md` |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -174,12 +175,13 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **Dual-stream / irreversibility.** The state stream passes at **0.936**, but
-   the JEPA streams with no state loss have a direction margin of **+0.018**, and
-   the combined planner is worse than state-only (**0.500 vs 0.611**). The state
-   path is solved; the asymmetry/planner value is not. Next: a **JEPA
-   reachability classifier** or a stronger irreversibility objective, not
-   another five-seed matrix.
+2. **Hypothesis B — belief state.** The state stream passes at **0.936**, but
+   the JEPA direction margin is **+0.018**, the combined planner is worse than
+   state-only (**0.500 vs 0.611**), and the reachability classifier passes only
+   because of the state stream's side+goal shortcut (JEPA-only AUC **0.285 /
+   0.874 / 0.290**). The next test is a **recurrent/belief-state JEPA** for the
+   fully occluded `t_cross+3/5` case, or a same-side door counterfactual that
+   breaks the shortcut.
 3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.
@@ -200,5 +202,7 @@ The honest short version:
 > occluded-door Anti-Equivalence test flips the direction sign but never clears
 > the state guardrail; scaling from 142k to 340k made state readback worse. A
 > dual stream solves the state path (0.936) but not the asymmetry/planner value
-> (+0.018 margin; combined planner 0.500 vs state-only 0.611). The state path is
-> no longer the frontier; the irreversibility signal is.
+> (+0.018 margin; combined planner 0.500 vs state-only 0.611). The reachability
+> classifier passes only because of the state stream's side+goal shortcut;
+> JEPA-only is unstable. The state path is no longer the frontier; the
+> irreversibility signal is — and it likely needs a belief state.

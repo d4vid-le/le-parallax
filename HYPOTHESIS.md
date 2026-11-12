@@ -293,13 +293,18 @@ stop-gradient MLP head does not recover more state (0.564 vs 0.671 linear). A
 dual-stream pilot solves the state path with a frozen 47k state stream
 (**0.936**), but the JEPA streams trained with no state loss have a direction
 margin of **+0.018**, and the combined planner is worse than state-only
-(**0.500 vs 0.611**). State decoupling works; the asymmetry/planner value does
-not. The trial is suggestive, not confirmatory. See
+(**0.500 vs 0.611**). A discriminative reachability classifier on the combined
+latents passes numerically (AUC 1.000, abort 1.00), but the state-only ablation
+gets the same and the JEPA-only probe is unstable (AUC 0.285/0.874/0.290): the
+pass is the state stream's side+goal shortcut, not JEPA irreversibility. State
+decoupling works; the asymmetry/planner value does not. The trial is suggestive,
+not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
 [`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),
-[`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md), and
-[`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md).
+[`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md),
+[`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md), and
+[`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md).
 
 ## 7. H4 — the transfer claim
 

@@ -273,10 +273,13 @@ are nuisance-specific, not dynamics-immune. See
   representation gap. The stop-gradient MLP head is worse than linear (0.564 vs
   0.671). A dual-stream pilot solves the state path (frozen 47k stream
   **0.936**) but the JEPA no-state-loss direction margin is **+0.018**, and the
-  combined planner is **0.500** vs state-only **0.611**. The state path is
-  solved; the irreversibility/planner value is not. Next: a JEPA reachability
-  classifier or a stronger irreversibility objective, not another five-seed
-  matrix. Inconclusive, not confirmatory.
+  combined planner is **0.500** vs state-only **0.611**. A discriminative
+  reachability classifier on the combined latents passes numerically (AUC
+  1.000, abort 1.00), but state-only gets the same and JEPA-only is unstable
+  (0.285/0.874/0.290); the pass is the side+goal shortcut, not JEPA
+  irreversibility. The state path is solved; the irreversibility/planner value
+  is not. Next: a belief-state JEPA for the fully occluded case, not another
+  five-seed matrix. Inconclusive, not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),
