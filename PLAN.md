@@ -89,17 +89,21 @@ Tasks:
   - good view: `(render(s, n1), render(s, n2))`
   - bad view: `(crop(o), crop(o))`
   - temporal + good view
-- Implement a small action-conditioned JEPA: CNN or ViT-tiny encoder, predictor,
-  SIGReg. Target 1–5M parameters.
-- Implement the probes: linear R² for state (position, velocity) and nuisance
-  (lighting, texture, camera).
-- Implement the planner: CEM or random shooting in latent space, goal = target
-  state latent.
+- Implement a small action-conditioned JEPA: CNN encoder with spatial-softmax
+  keypoints, residual predictor, SIGReg. Target 1–5M parameters.
+- Add the shared auxiliary objectives: a linear state readout and a two-step
+  rollout loss. Every arm uses them.
+- Implement the probes: linear R² for state and nuisance, plus the direct
+  same-state nuisance distance ratio.
+- Implement the planner: CEM in latent space with the state readout as the
+  terminal cost.
 - Reproduce a baseline run end-to-end. It does not need to be good; it needs to
   be measurable.
 
-**Gate 0:** the baseline trains, plans above random, and the probes recover
-state above chance. If not, fix the pipeline before adding arms.
+**Gate 0 (passed, 2026-11-12):** state probe R² ~0.84; planner 2/6 vs random
+1/6; mean final distance 0.23 vs 0.62. The baseline is more sensitive to
+nuisance than to state (ratio 1.25), which is the target for the good-view arms.
+See [`docs/PHASE0.md`](docs/PHASE0.md).
 
 ---
 
@@ -107,7 +111,7 @@ state above chance. If not, fix the pipeline before adding arms.
 
 **Goal:** H1 (mechanism) and H2 (behavior) on the synthetic world.
 
-Arms, identical compute and architecture:
+Arms, identical compute, architecture, state readout, and two-step rollout loss:
 
 | Arm | Positive pairs | Purpose |
 |---|---|---|
@@ -121,7 +125,9 @@ Data fractions: 25%, 50%, 100% of trajectories.
 Metrics:
 
 - State probe R² (position, velocity).
-- Nuisance probe R² (lighting, texture, camera).
+- Same-state nuisance distance ratio: nuisance change vs state change. Lower is
+  better. This is the primary nuisance metric; the linear nuisance probe is a
+  secondary check because Phase 0 showed it can be uninformative.
 - Planning success in-distribution.
 - Planning success under nuisance shift.
 - Success variance across seeds.
@@ -308,13 +314,15 @@ The timeline is a target, not a contract. Gates matter more than dates.
 
 ## 15. Immediate next steps
 
-1. Write and freeze `docs/PREREG.md` for H1/H2. Do this before the first
-   confirmatory run; the pilot can proceed on a separate branch.
-2. Build the synthetic world and the four data modes.
-3. Train the baseline and check the probes.
-4. Run the one-seed pilot. Choose the good-view weight.
-5. Freeze the protocol, run three seeds, and analyze.
-6. Decide Gate 1. Write the result either way.
+1. Build the synthetic world and the four data modes. The temporal mode and the
+   baseline are done; good view and bad view are next.
+2. Run the one-seed pilot at 64px. Choose the good-view weight and check the
+   same-state nuisance ratio.
+3. Freeze `docs/PREREG.md` for H1/H2. Do this before the first confirmatory run;
+   the pilot can proceed on a separate branch.
+4. Run three seeds at 96px.
+5. Decide Gate 1. Write the result either way.
 
 The first result is not "does it work." It is "did the manipulation move the
-latent?" Everything else follows from that.
+latent?" Everything else follows from that. Phase 0 says the baseline is usable;
+the next question is whether good views move the nuisance ratio.

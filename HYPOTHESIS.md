@@ -75,9 +75,15 @@ control" to "better representation, wrong information."
 
 ## 4. H1 — the mechanism claim
 
-**Claim.** Same-state good-view supervision increases the fraction of the latent
-explained by world state and decreases the fraction explained by nuisance,
-relative to temporal-only and bad-view supervision.
+**Claim.** Same-state good-view supervision reduces the latent's sensitivity to
+nuisance while preserving its state readout, relative to temporal-only and
+bad-view supervision.
+
+**Baseline choice.** All arms share a linear state readout and a two-step rollout
+loss. Phase 0 showed that a temporal-only JEPA learns a predictable but
+state-free summary; the state readout makes the baseline a usable planner. H1
+therefore tests nuisance invariance, not whether state is encoded at all. The
+pure-JEPA ablation without the state readout is a secondary check.
 
 **Intervention.** Add a good-view consistency term to the encoder:
 
@@ -86,31 +92,29 @@ L_good = || f(o_i) - f(o_j) ||^2,   o_i, o_j = render(s, n_i), render(s, n_j)
 ```
 
 with independent nuisance `n_i, n_j` and the same state `s`. The term is added to
-the standard prediction loss and SIGReg.
+the standard prediction loss and the shared auxiliary objectives.
 
 **Prediction.**
 
-- State probe R² is at least **0.10 higher** for good views than for the temporal
-  baseline.
-- Nuisance probe R² is at least **0.10 lower** for good views than for the
-  temporal baseline.
-- The effect is ordered: good view > temporal > bad view on state R², and the
-  reverse on nuisance R².
+- State probe R² stays at least **0.75** for every arm (manipulation check).
+- The same-state nuisance distance ratio is below **0.5** for good views, versus
+  above **1.0** for the temporal baseline. (Phase 0 baseline: **1.25**.)
+- Bad views do not improve the ratio; temporal + good views does.
+- The effect is ordered: good view < temporal + good < temporal ≈ bad view.
 
-**Falsifier.** No probe difference, or good views increase nuisance decodability,
-or the ordering reverses. In that case the theorem does not transfer to this
-regime, and we report it.
+**Falsifier.** The ratio does not fall below 0.7, or the state probe drops below
+0.6, or bad views improve the ratio as much as good views. In that case the
+theorem does not transfer to this regime, and we report it.
 
-**Why it matters.** If the mechanism is not visible in the probes, any control
-gain would be a coincidence. H1 is the manipulation check.
-
----
+**Why it matters.** This is the manipulation check. If the good-view term does
+not move the latent toward nuisance invariance, any control gain would be a
+coincidence.
 
 ## 5. H2 — the behavior claim
 
-**Claim.** Good-view supervision improves out-of-distribution planning under a
-nuisance shift and improves data efficiency, without a meaningful
-in-distribution regression.
+**Claim.** Given the shared state-aware baseline, good-view supervision improves
+out-of-distribution planning under a nuisance shift and improves data efficiency,
+without a meaningful in-distribution regression.
 
 **Prediction.**
 
@@ -209,6 +213,8 @@ nuisance dimensions you can afford to lose."
 
 - **One model family.** A small action-conditioned JEPA, 1–15M parameters, 96px,
   3-frame history, SIGReg.
+- **Shared auxiliary objectives.** A linear state readout and a two-step rollout
+  loss are used in every arm. The pure-JEPA ablation without them is secondary.
 - **Simulated worlds.** A controlled 2D world first; PushT/Two-Room second. No
   real-robot data.
 - **Three seeds.** Enough to see a large effect, not enough for a small one. We

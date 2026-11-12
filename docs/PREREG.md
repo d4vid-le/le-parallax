@@ -27,10 +27,10 @@ regression?
 
 ## 3. Hypotheses
 
-**H1 (mechanism).** Good-view supervision increases state probe R² by at least
-0.10 and decreases nuisance probe R² by at least 0.10, relative to the temporal
-baseline, with the ordering good > temporal > bad on state R² and the reverse on
-nuisance R².
+**H1 (mechanism).** Good-view supervision reduces the same-state nuisance
+distance ratio below **0.5**, versus above **1.0** for the temporal baseline,
+while keeping state probe R² at least **0.75**. The Phase 0 baseline ratio is
+**1.25** with state R² **0.84**.
 
 **H2 (behavior).** At 50% of the training data, good-view pretraining improves
 OOD planning success by at least 10 percentage points over the temporal baseline,
@@ -67,7 +67,9 @@ Three seeds per arm and fraction: `0, 1, 2`.
 - Encoder: CNN or ViT-tiny, 96×96 input.
 - Predictor: action-conditioned MLP or small transformer.
 - Latent: 64–192 dimensions.
-- Regularizer: SIGReg.
+- Regularizer: SIGReg plus variance/covariance terms.
+- Auxiliary objectives: a linear state readout and a two-step rollout loss,
+  shared by every arm.
 - Parameters: 1–5M.
 - Training: AdamW, fixed schedule, gradient clipping.
 - Batch: 32–64.
@@ -99,8 +101,11 @@ loss weight or the checkpoint.
 ### Primary
 
 - **State probe R²** — linear readout of position and velocity from the latent.
-- **Nuisance probe R²** — linear readout of lighting/texture/camera from the
-  latent. Lower is better.
+- **Same-state nuisance distance ratio** — distance between latents of the same
+  state under different nuisance, divided by the distance between different
+  states. Lower is better. This is the primary nuisance metric.
+- **Nuisance probe R²** — linear readout of lighting/texture/camera. Secondary;
+  Phase 0 showed it can be uninformative.
 - **OOD planning success** — goal reached under nuisance shift.
 - **ID planning success** — goal reached in-distribution.
 
@@ -124,8 +129,9 @@ loss weight or the checkpoint.
 
 | Claim | Threshold | Falsifier |
 |---|---|---|
-| H1 state | +0.10 R² over temporal | < +0.05 |
-| H1 nuisance | −0.10 R² under temporal | > −0.05 |
+| H1 state | ≥0.75 R² for every arm | <0.60 |
+| H1 nuisance ratio | <0.50 for good views | >0.70 |
+| H1 ordering | good < temporal + good < temporal ≈ bad | bad ≈ good |
 | H2 OOD | +10 points at 50% data | < +5 |
 | H2 ID | ≤2 points regression | >5 points regression |
 | H2 seeds | CI excludes zero | CI includes zero |

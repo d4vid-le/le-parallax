@@ -76,8 +76,14 @@ and nuisance. Four arms, same compute:
 | **Temporal + good view** | both | dynamics plus a state-like latent |
 
 The primary readouts are planning success in-distribution and under a nuisance
-shift, a linear probe of physical state, and a linear probe of nuisance. The
-secondary readout is forgetting after a domain shift.
+shift, a linear probe of physical state, and the **same-state nuisance
+distance**: how far the latent moves when only the nuisance changes, divided by
+how far it moves when the state changes. The secondary readout is forgetting
+after a domain shift.
+
+All arms share the same architecture and auxiliary objectives: a linear state
+readout and a two-step rollout loss. The positive-pair definition is the only
+difference. The baseline run is in [`docs/PHASE0.md`](docs/PHASE0.md).
 
 A full protocol, including arms, metrics, thresholds, seeds, and stop rules, is
 in [`PLAN.md`](PLAN.md). The formal hypotheses and their falsifiers are in
@@ -101,11 +107,28 @@ in [`PLAN.md`](PLAN.md). The formal hypotheses and their falsifiers are in
 
 ## Status
 
-Planning. No code yet.
+Phase 0 baseline is running. On 48 episodes at 64px, the temporal baseline
+reaches a state probe R² of **~0.84** and plans **2/6** vs random **1/6** on
+held-out episodes. Its same-state nuisance distance is **1.25×** its
+between-state distance: the latent is more sensitive to nuisance than to state.
+That is the target for the good-view arms.
 
-The first milestone is a synthetic 2D world and a baseline that reproduces the
-known LeWM behaviour at small scale. The first claim is H1, the representation
-claim; we do not run the control experiment until H1 is visible in the probes.
+The good-view and bad-view data modes are the next implementation step. There is
+no confirmatory result yet; see [`docs/PHASE0.md`](docs/PHASE0.md).
+
+## Running Phase 0
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+python scripts/phase0.py --episodes 48 --steps 32 --size 64 --epochs 60
+pytest -q
+```
+
+The script writes `runs/phase0/report.json` and a checkpoint. `runs/` is
+git-ignored.
 
 ---
 
@@ -115,6 +138,9 @@ claim; we do not run the control experiment until H1 is visible in the probes.
 README.md              this document
 HYPOTHESIS.md          formal claims, predictions, falsifiers
 PLAN.md                phases, arms, metrics, compute, gates
+leparallax/            world, data, model, training, probes, planner
+scripts/phase0.py      end-to-end baseline
+docs/PHASE0.md         baseline report and failure log
 docs/PREREG.md         pre-registration template for the first experiment
 docs/RELATED-WORK.md   the papers this project sits between
 ```
