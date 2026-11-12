@@ -151,6 +151,13 @@ not help. The encoder's OOD support is the limit. H2-v3 trains both arms with
 domain randomization and tests a held-out shift inside that support. See
 [`docs/READOUT-DIAGNOSTIC.md`](docs/READOUT-DIAGNOSTIC.md).
 
+H2-v3 domain-randomized both arms. **FAIL on the pre-registered distance
+endpoint** (−0.026 vs −0.05), but **4/5 seeds lower, CI excludes zero**, and a
+strong secondary success result: **88% vs 60%** OOD (**+28 points, all five seeds
+positive**). The distance endpoint was near-saturated; success is the control
+metric that matters. H2-v4 is a success-primary replication on fresh episodes. See
+[`docs/H2V3-CONFIRM.md`](docs/H2V3-CONFIRM.md).
+
 ![Same state under two nuisance styles](snapshots/overview.png)
 
 ## Running Phase 0
@@ -189,6 +196,8 @@ docs/PLANNER-DIAGNOSTIC.md  oracle vs CEM vs state-feedback
 docs/H2V2-CONFIRM.md   state-feedback + robust readout result
 docs/READOUT-DIAGNOSTIC.md  linear vs MLP readout
 docs/PREREG-H2v3.md   domain-randomized encoder protocol
+docs/H2V3-CONFIRM.md  domain-randomized result
+docs/PREREG-H2v4.md   success-primary replication protocol
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

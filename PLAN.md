@@ -177,6 +177,11 @@ support is the wall. H2-v3 trains both arms with domain randomization and tests 
 held-out shift inside the support. See
 [`docs/READOUT-DIAGNOSTIC.md`](docs/READOUT-DIAGNOSTIC.md).
 
+**H2-v3 status (2026-11-12):** FAIL on distance (−0.026 vs −0.05), but 4/5 seeds
+lower, CI excludes zero; OOD success 88% vs 60% (+28 points, all seeds positive).
+H2-v4 success-primary replication is running. See
+[`docs/H2V3-CONFIRM.md`](docs/H2V3-CONFIRM.md).
+
 ---
 
 ## 6. Phase 2 — the simulated benchmark (weeks 4–5)

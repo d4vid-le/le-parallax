@@ -168,6 +168,12 @@ R² −0.074 vs temporal −1.290, MLP no better. The encoder's OOD support is t
 limit. H2-v3 domain-randomizes encoder training and tests a held-out shift inside
 the support. See [`docs/READOUT-DIAGNOSTIC.md`](docs/READOUT-DIAGNOSTIC.md).
 
+H2-v3 domain-randomized both arms and failed the distance endpoint (−0.026 vs
+−0.05), but 4/5 seeds were lower with a CI excluding zero, and OOD success rose
+from **60% to 88%** (+28 points, all five seeds positive). The distance endpoint
+was near-saturated. H2-v4 is a success-primary replication on fresh episodes. See
+[`docs/H2V3-CONFIRM.md`](docs/H2V3-CONFIRM.md).
+
 **Why it matters.** This is the translation from representation to control. The
 paper's 42× sample-efficiency claim is about alignment, not planning; H2 tests
 whether it survives the translation.
