@@ -27,9 +27,11 @@ def train_jepa(
     view_pairs: list[ViewPair] | None = None,
     lambda_view: float = 0.0,
     lambda_view_state: float = 0.25,
+    model: JEPA | None = None,
 ) -> JEPA:
-    mx.random.seed(seed)
-    model = JEPA(image_size=image_size)
+    if model is None:
+        mx.random.seed(seed)
+        model = JEPA(image_size=image_size)
     sigreg = SIGReg()
     loss_fn = make_loss(sigreg, lambda_sig)
 
