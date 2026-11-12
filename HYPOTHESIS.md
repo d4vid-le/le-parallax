@@ -150,6 +150,12 @@ difference **−0.041** against a **−0.05** target, 3/5 seeds lower, CI
 regresses by +0.110. The planner is the bottleneck; the H1 mechanism stands. See
 [`docs/H2-CONFIRM.md`](docs/H2-CONFIRM.md).
 
+A follow-up diagnostic shows H2 is confounded: a true-state proportional
+controller solves the same OOD episodes **100%**, while CEM succeeds **28%** and
+random **34%**; the learned state head is negative-R² OOD. The planner and
+readout, not the representation, are the bottleneck. See
+[`docs/PLANNER-DIAGNOSTIC.md`](docs/PLANNER-DIAGNOSTIC.md).
+
 **Why it matters.** This is the translation from representation to control. The
 paper's 42× sample-efficiency claim is about alignment, not planning; H2 tests
 whether it survives the translation.

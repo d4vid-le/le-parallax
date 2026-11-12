@@ -128,8 +128,14 @@ mechanism result stands; the control link is unconfirmed.
 The H1b failure is a protocol issue: one temporal baseline seed fell below the
 absolute 0.75 state floor; the good arm is 0.898 there and higher than temporal
 in 5/5. See [`docs/H1-CONFIRM.md`](docs/H1-CONFIRM.md) and
-[`docs/H2-CONFIRM.md`](docs/H2-CONFIRM.md). Next: diagnose the planner before
-re-testing H2.
+[`docs/H2-CONFIRM.md`](docs/H2-CONFIRM.md).
+
+The planner diagnostic is the important follow-up: a **true-state proportional
+controller** solves the same OOD task **100%**, while CEM succeeds **28%** and
+random **34%**. The learned state head is negative-R² OOD. H2 is confounded by
+the planner and readout, not a verdict on the representation. See
+[`docs/PLANNER-DIAGNOSTIC.md`](docs/PLANNER-DIAGNOSTIC.md). Next: state-feedback
+planner + nuisance-robust readout, then H2-v2.
 
 ![Same state under two nuisance styles](snapshots/overview.png)
 
@@ -165,6 +171,7 @@ docs/PREREG.md         pre-registration template for the first experiment
 docs/PREREG-v2.md      confirmatory H1 protocol
 docs/H1-CONFIRM.md     confirmatory H1 result
 docs/H2-CONFIRM.md     confirmatory H2 result
+docs/PLANNER-DIAGNOSTIC.md  oracle vs CEM vs state-feedback
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

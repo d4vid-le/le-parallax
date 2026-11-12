@@ -157,8 +157,12 @@ but H1 passes, the result is the invariance–control trade-off; write that.
 
 **Gate 2 status (2026-11-12):** FAIL as pre-registered. Mean OOD difference
 −0.041 (target −0.05), 3/5 seeds lower, CI includes zero; OOD success +0.10, but
-random 0.34 beats both planners. The planner is the bottleneck. Diagnose the
-planner before H2-v2; do not claim control.
+random 0.34 beats both planners. The follow-up diagnostic shows a true-state
+proportional controller solves the same episodes **100%**, while CEM succeeds
+**28%** and the learned state head is negative-R² OOD. H2 is confounded by the
+planner/readout, not a representation verdict. Replace the planner and readout
+before H2-v2; do not claim control. See
+[`docs/PLANNER-DIAGNOSTIC.md`](docs/PLANNER-DIAGNOSTIC.md).
 
 ---
 
