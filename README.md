@@ -16,6 +16,9 @@ This is not a product. It is a controlled experiment with a small model, a
 simulated world, and a pre-registered claim. The north star is reliable small
 models that learn continually; this chapter is one wedge into that problem.
 
+**Paper draft:** [`docs/PAPER.md`](docs/PAPER.md) — the full write-up, including
+the failed endpoints.
+
 ---
 
 ## The gap
