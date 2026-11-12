@@ -268,12 +268,13 @@ collapse. See [`docs/COLLISION-1-2.md`](docs/COLLISION-1-2.md).
 
 **Anti-Equivalence (negative).** A one-way door gives a genuine irreversible
 transition. The proposed asymmetric predictor + volume penalty did not produce
-the predicted A→B advantage. Across three seeds, the asymmetric arm's Δasym was
-−0.142 vs +0.019 for symmetric, lower on 3/3 seeds. The corrected log-volume arm
-appeared to have a huge asymmetry (Δ +10.48), but forward R² was 0.174 and
-reverse R² was −7.71, with a 33% smaller latent: collapse, not a causal slice.
-The wrong-sign control had the highest reachability AUC (0.695). Direction is
-not volume. See [`docs/COLLISION-4.md`](docs/COLLISION-4.md).
+the predicted A→B advantage. Across five seeds, the asymmetric arm's Δasym was
+−0.115 vs −0.013 for symmetric, lower on 4/5 seeds and higher on 1/5. The
+corrected log-volume arm appeared to have a huge asymmetry (Δ +7.32), but
+forward R² was 0.184 and reverse R² was −5.08, with a 34% smaller latent:
+collapse, not a causal slice. The wrong-sign control had the highest mean
+reachability AUC (0.670). Direction is not volume. See
+[`docs/COLLISION-4.md`](docs/COLLISION-4.md).
 
 ## 7. H4 — the transfer claim
 

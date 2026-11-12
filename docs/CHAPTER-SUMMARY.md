@@ -67,7 +67,7 @@ The one-line story:
 | **Le-Gates v1** | All gates forget A +146% to +155%. | A gate trained only on B has no signal to close on A. |
 | **Le-Gates v2** | Soft error gate routes (AUC 0.667) but forgets +104%. | Routing is not retention; the sigmoid leaks. |
 | **Le-Gates v3** | Hard gate forgets +26%, routes 18.5% of A. | The router, not the gate scalar, is the bottleneck. |
-| **Anti-Equivalence** | One-way door; volume arm Δasym +10.48 but forward R² 0.174 / reverse R² −7.71 and latent std 0.612; asym Δasym −0.142 vs symmetric +0.019, lower on 3/3 seeds; wrong-sign reach AUC 0.695. | The determinant penalty collapses; the matched reversible control removes the direction effect; the wrong-sign control gets the same reachability gain. Direction is not volume. |
+| **Anti-Equivalence** | One-way door; volume arm Δasym +7.32 but forward R² 0.184 / reverse R² −5.08 and latent std 0.599; asym Δasym −0.115 vs symmetric −0.013, lower on 4/5 seeds; wrong-sign reach AUC 0.670. | The determinant penalty collapses; the matched reversible control removes the direction effect; the wrong-sign control gets the same reachability gain. Direction is not volume. |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -115,8 +115,8 @@ credible.
   forgetting at 10% replay.
 - A causal capacity story for Seed 4. The autopsy is one seed pair; it rejects a
   simple global rank-collapse explanation, not every allocation explanation.
-- A directed semi-lattice from asymmetric pair loss. The one-way-door pilot
-  falsified the operationalized version; the determinant/log-volume penalty
+- A directed semi-lattice from asymmetric pair loss. The five-seed one-way-door
+  test falsified the operationalized version; the determinant/log-volume penalty
   collapsed the latent, and the matched reversible control removed the apparent
   direction effect.
 - A general claim about all world models. This is one synthetic world, one small
@@ -143,6 +143,10 @@ gap:
 - **Adaptation:** a frozen-encoder Le-Gates adapter needs a retention signal and
   a reliable router; a soft gate leaks, and a hard gate with 10% replay routes
   too much A.
+- **Direction is not volume:** a determinant/log-volume penalty can manufacture
+  a huge A→B asymmetry by collapsing the latent; the reverse R² goes negative,
+  the latent std shrinks, and a matched reversible control removes the apparent
+  direction effect.
 
 The practical lesson is conditional: **support first, then alignment.** If you
 can collect two observations of the same state with independently varying
@@ -158,14 +162,19 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
+2. **A fair Anti-Equivalence test.** Use an occluded observation where the
+   irreversible information is actually lost, or a same-state door open/closed
+   counterfactual. Add a sufficiency constraint (state R² floor / variance
+   floor) and a full-rank `symmetric_heads` control to isolate the bottleneck.
+3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.
-3. **H4 — cross-modal rotation.** Separately trained vision/proprio encoders
+4. **H4 — cross-modal rotation.** Separately trained vision/proprio encoders
    align up to a rotation; test modularity.
-4. **Write-up.** The conditional result — mechanism, control, retention, OOD
-   boundary, CSA fix, router boundary — is coherent enough for a research note.
-   The failures belong in the paper, not the appendix.
+5. **Write-up.** The conditional result — mechanism, control, retention, OOD
+   boundary, CSA fix, router boundary, and the failed directed-manifold test —
+   is coherent enough for a research note. The failures belong in the paper,
+   not the appendix.
 
 The honest short version:
 

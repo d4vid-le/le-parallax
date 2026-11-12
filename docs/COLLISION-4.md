@@ -1,17 +1,17 @@
 # Collision 4 — Anti-Equivalence on a one-way door
 
-**Status:** complete, 2026-11-12. Three seeds (seed 0 pilot + seeds 1–2
-confirmation).
+**Status:** complete, 2026-11-12. Five seeds.
 **Protocol:** [`PREREG-ASYMMETRY.md`](PREREG-ASYMMETRY.md), sha256
 `e1fc79ff68fb92d9a2a5552158ea1c1a17e89de90178d97e15a43302b275eea1`.
-**Artifacts:** `runs/asymmetry-pilot/`, `runs/asymmetry-confirm/` (git-ignored).
+**Artifacts:** `runs/asymmetry-pilot/`, `runs/asymmetry-confirm/`,
+`runs/asymmetry-confirm2/` (git-ignored).
 
 The Anti-Equivalence hypothesis says symmetric pair losses destroy causal
 direction on irreversible transitions. The latent should be a directed map:
 `A→B` easy, `B→A` hard, with `z_B` lower-volume than `z_A`. We built a genuine
 irreversible event — a one-way door — and tested it.
 
-The three-seed result **falsifies the hypothesis as operationalized here**, and
+The five-seed result **falsifies the hypothesis as operationalized here**, and
 it exposes a collapse trap in the proposed determinant penalty.
 
 ---
@@ -70,14 +70,14 @@ Arms (20 epochs, 5 warmup, `λ_pair=0.25`, `λ_state=0.25`):
 `Δasym = asym_ratio(irr) − asym_ratio(rev)`. A positive value is the
 Anti-Equivalence prediction.
 
-### Three-seed aggregate
+### Five-seed aggregate
 
 | arm | Δasym | ΔΔrank | state R² | reach AUC | latent std | forward R² | reverse R² |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| symmetric | **+0.019** | −0.086 | 0.455 | 0.529 | 0.919 | 0.974 | 0.975 |
-| asym | **−0.142** | −0.057 | 0.501 | 0.549 | 0.886 | 0.955 | 0.961 |
-| asym_vol | **+10.478** | −0.276 | 0.503 | 0.505 | **0.612** | **0.174** | **−7.714** |
-| asym_wrong | −0.053 | −0.046 | 0.524 | **0.695** | 1.009 | 0.966 | 0.968 |
+| symmetric | **−0.013** | −0.047 | 0.327 | 0.661 | 0.911 | 0.934 | 0.936 |
+| asym | **−0.115** | −0.028 | 0.485 | 0.506 | 0.882 | 0.911 | 0.921 |
+| asym_vol | **+7.324** | −0.236 | 0.437 | 0.492 | **0.599** | **0.184** | **−5.078** |
+| asym_wrong | −0.058 | −0.014 | 0.465 | **0.670** | 1.005 | 0.923 | 0.928 |
 
 Paired direction difference `asym − symmetric` on `Δasym`:
 
@@ -86,31 +86,35 @@ Paired direction difference `asym − symmetric` on `Δasym`:
 | 0 | −0.067 | −0.126 | **−0.059** |
 | 1 | −0.006 | −0.393 | **−0.387** |
 | 2 | +0.132 | +0.093 | **−0.039** |
+| 3 | −0.006 | −0.172 | **−0.166** |
+| 4 | −0.118 | +0.023 | **+0.141** |
 
-The asymmetric arm is lower on **3/3 seeds**. The volume arm's collapse is also
-consistent: forward R² 0.204 / 0.162 / 0.156 and reverse R² −8.90 / −3.40 /
-−10.84, with latent std 0.604 / 0.517 / 0.714 vs the symmetric 0.915 / 0.945 /
-0.897. The state probe survives (0.551 / 0.534 / 0.423), so this is not total
-collapse; it is a collapsed **pair geometry** with a still-readable state head.
+The asymmetric arm is lower on **4/5 seeds** and higher on **1/5**; mean paired
+difference **−0.102**. There is no consistent directed advantage. The volume
+collapse is 5/5: forward R² 0.087–0.311, reverse R² −0.71 to −10.84, latent std
+0.517–0.714 vs symmetric 0.890–0.932. The state probe survives on most seeds
+(0.121–0.556), so this is a collapsed **pair geometry**, not total state
+collapse. Seed 3's symmetric arm is an outlier (state R² 0.019); it is reported,
+not dropped.
 
 ## 4. What the result shows
 
-1. **The direction bet fails.** The asymmetric arm's mean `Δasym` is **−0.142**
-   vs symmetric **+0.019**, and it is lower on **3/3 seeds** (paired differences
-   −0.059, −0.387, −0.039). Training a forward predictor with a bottlenecked
-   reverse does not make `A→B` easier than `B→A`; it makes it relatively harder.
+1. **The direction bet fails, but not as a simple law.** The asymmetric arm's
+   mean `Δasym` is **−0.115** vs symmetric **−0.013**; it is lower on **4/5
+   seeds** and higher on **1/5** (paired differences −0.059, −0.387, −0.039,
+   −0.166, **+0.141**). There is no consistent directed advantage and no
+   positive effect of the predicted size.
 2. **The volume arm's huge asymmetry is collapse.** `asym_vol` has mean
-   `Δasym=+10.48`, but forward R² is **0.174** and reverse R² is **−7.714**.
+   `Δasym=+7.32`, but forward R² is **0.184** and reverse R² is **−5.078**.
    Both directions are bad; the reverse is catastrophic. The latent std falls
-   from 0.919 to **0.612**. This is global shrinkage, not a causal slice. The
-   state probe survives (0.503), so it is not total collapse — but the pair
-   geometry is degenerate.
+   from 0.911 to **0.599**. This is global shrinkage, not a causal slice. The
+   state probe survives on most seeds (mean 0.437, range 0.121–0.556), so it is
+   not total state collapse — but the pair geometry is degenerate.
 3. **The wrong-sign control kills the reachability story.** `asym_wrong` has the
-   **highest reach AUC (0.695)**, the largest latent (std 1.009), and no rank
-   contraction. The volume arm is at chance (0.505) and the asym arm at 0.549.
-   The reachability gain is not caused by the corrected volume sign or the
-   directed geometry; it comes from the pair/state training, and the wrong-sign
-   arm gets it too.
+   **highest mean reach AUC (0.670)**, the largest latent (std 1.005), and no
+   rank contraction. The volume arm is 0.492 and the asym arm 0.506. The
+   reachability gain is not caused by the corrected volume sign or the directed
+   geometry; it is unstable and appears in the wrong-sign control.
 4. **The matched control reverses the raw result.** With the old gap-2 reversible
    pairs, the temporal arm had `Δasym=+0.129`; with gaps matched to 4/6/8 it is
    **−0.033**. The apparent direction effect was a time-gap confound.
@@ -122,7 +126,7 @@ collapse; it is a collapsed **pair geometry** with a still-readable state head.
 
 ## 5. Verdict
 
-**Not supported across three seeds.** In this observable one-way-door world:
+**Not supported across five seeds.** In this observable one-way-door world:
 
 - asymmetric prediction does not produce the predicted `A→B` advantage;
 - the determinant/log-volume penalty contracts by shrinking the latent, not by
@@ -139,8 +143,10 @@ prevents the volume term from shrinking the state away.
 
 ## 6. Caveats
 
-- Three seeds, 20 epochs, 40/20 episodes. State R² is low (0.33–0.55) relative
-  to H1 (0.8+); the door is a harder observation and 20 epochs is short.
+- Five seeds, 20 epochs, 40/20 episodes. State R² is low (0.33 mean symmetric,
+  0.49 asym) relative to H1 (0.8+); the door is a harder observation and 20
+  epochs is short. Seed 3's symmetric arm collapsed (state R² 0.019); it is
+  reported, not dropped.
 - The volume penalty is a diagonal proxy, not the full determinant.
 - Reachability is a linear probe, not a closed-loop planner.
 - The one-way door is visible, so the irreversibility is observable; this is a

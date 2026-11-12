@@ -209,16 +209,17 @@ Seed 1 has lower B rank with better B R². Rank alone does not predict R². See
 
 **Anti-Equivalence: direction is not volume.** A one-way door, an asymmetric
 pair loss, and a corrected log-volume penalty. The volume arm's huge apparent
-asymmetry (Δ +10.48) came with forward R² 0.174, reverse R² −7.71, and a latent
-std of 0.612 vs 0.919 for symmetric — collapse, not a causal slice. The
-asymmetric arm's Δasym was −0.142 vs +0.019 for symmetric, lower on 3/3 seeds;
-the wrong-sign control had the highest reachability AUC (0.695). See
+asymmetry (Δ +7.32) came with forward R² 0.184, reverse R² −5.08, and a latent
+std of 0.599 vs 0.911 for symmetric — collapse, not a causal slice. The
+asymmetric arm's Δasym was −0.115 vs −0.013 for symmetric, lower on 4/5 seeds;
+the wrong-sign control had the highest reachability AUC (0.670). See
 [`docs/COLLISION-4.md`](docs/COLLISION-4.md).
 
-**The chapter in seven results:** mechanism (H1), control (H2-v4), retention
-(H3), dynamics boundary (H3b), OOD characterization, CSA fix, and Le-Gates
-router boundary. The full synthesis, including the failed endpoints and the
-caveats, is in [`docs/CHAPTER-SUMMARY.md`](docs/CHAPTER-SUMMARY.md).
+**The chapter in eight results:** mechanism (H1), control (H2-v4), retention
+(H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
+boundary, and the Anti-Equivalence failure. The full synthesis, including the
+failed endpoints and the caveats, is in
+[`docs/CHAPTER-SUMMARY.md`](docs/CHAPTER-SUMMARY.md).
 
 ![Same state under two nuisance styles](snapshots/overview.png)
 

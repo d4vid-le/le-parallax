@@ -256,9 +256,9 @@ are nuisance-specific, not dynamics-immune. See
   bottleneck.
 - **Capacity:** Seed 4 is domain-specific allocation, not global rank collapse.
 - **Anti-Equivalence:** one-way door; the corrected volume penalty collapsed the
-  latent (reverse R² −7.71, std 0.612), the asymmetric arm's Δasym was −0.142 vs
-  symmetric +0.019 (lower 3/3), and the wrong-sign control had the highest
-  reachability AUC (0.695). The hypothesis is not supported in this
+  latent (reverse R² −5.08, std 0.599), the asymmetric arm's Δasym was −0.115 vs
+  symmetric −0.013 (lower 4/5), and the wrong-sign control had the highest mean
+  reachability AUC (0.670). The hypothesis is not supported in this
   observable-door setting.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),

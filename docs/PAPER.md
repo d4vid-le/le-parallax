@@ -47,8 +47,8 @@ Le-Gates adapter forgets the original dynamics: soft gates forget **+104% to
 +146%**, and a hard error gate cuts that to **+26%** but still routes **18.5%**
 of the original domain. The gate is the policy; isolation is the guarantee, and
 the router is the bottleneck. An anti-equivalence test on a one-way door also
-failed: the determinant-style volume penalty collapsed the latent, and a matched
-reversible control removed the apparent direction effect.
+failed across five seeds: the determinant-style volume penalty collapsed the
+latent, and a matched reversible control removed the apparent direction effect.
 
 The failures are part of the result: one pre-registered state-floor endpoint
 failed on a baseline seed, CEM was a broken planner before the control test, a
@@ -405,7 +405,7 @@ the isolation.
 | Le-Gates v1 | All gates forget A (+146% to +155%) | A gate trained only on B has no signal to close on A |
 | Le-Gates v2 | Soft error gate routes (AUC 0.667) but forgets +104% | Routing is not retention; the soft sigmoid leaks |
 | Le-Gates v3 | Hard gate forgets +26%, routes 18.5% of A | The router, not the gate scalar, is the bottleneck |
-| Anti-Equivalence | Volume arm Δasym +10.48 but forward R² 0.174 / reverse R² −7.71, latent std 0.612; asym Δasym −0.142 vs symmetric +0.019, lower 3/3; wrong-sign reach AUC 0.695 | The determinant penalty collapses; the matched control removes the direction effect; the wrong-sign control gets the same reachability gain |
+| Anti-Equivalence | Volume arm Δasym +7.32 but forward R² 0.184 / reverse R² −5.08, latent std 0.599; asym Δasym −0.115 vs symmetric −0.013, lower 4/5; wrong-sign reach AUC 0.670 | The determinant penalty collapses; the matched control removes the direction effect; the wrong-sign control gets the same reachability gain |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -459,14 +459,15 @@ masks) is the next requirement, not a better gate scalar.
 
 We also tested the stronger claim that an irreversible transition should produce
 a directed latent semi-lattice: A→B easy, B→A hard, `z_B` lower-rank. A one-way
-door gives a real irreversible event. The pilot falsified the operationalized
+door gives a real irreversible event. The five-seed test falsified the operationalized
 version. An asymmetric forward/bottlenecked-reverse objective did not make A→B
-easier; its three-seed mean `Δasym` was **−0.142** vs **+0.019** for a symmetric
-pair loss, and it was lower on **3/3 seeds** (paired differences −0.059, −0.387,
-−0.039). The corrected log-volume penalty produced a huge apparent asymmetry
-(**+10.48**) only by shrinking the latent: forward R² **0.174**, reverse R²
-**−7.71**, latent std **0.612** vs 0.919. The wrong-sign control had the highest
-reachability AUC (**0.695**), so the reachability gain is not caused by the
+easier; its five-seed mean `Δasym` was **−0.115** vs **−0.013** for a symmetric
+pair loss. It was lower on **4/5 seeds** and higher on **1/5** (paired differences
+−0.059, −0.387, −0.039, −0.166, **+0.141**), so there is no consistent directed
+advantage. The corrected log-volume penalty produced a huge apparent asymmetry
+(**+7.32**) only by shrinking the latent: forward R² **0.184**, reverse R²
+**−5.08**, latent std **0.599** vs 0.911. The wrong-sign control had the highest
+mean reachability AUC (**0.670**), so the reachability gain is not caused by the
 directed geometry. A matched reversible control with the same time gaps removed
 the apparent effect.
 
@@ -507,10 +508,11 @@ not (CNA-v1: normal R² 0.739, shifted 0.282).
   causally.
 - The familiar-nuisance swap used training nuisance identities; it is not the
   OOD test.
-- The Anti-Equivalence pilot is one seed / 20 epochs; the two-seed confirmation
-  is pending. The door is visible, so the irreversibility is observable; the
-  volume penalty is a diagonal proxy, not the full determinant; reachability is
-  a linear probe, not a closed-loop planner.
+- The Anti-Equivalence test is five seeds / 20 epochs. The door is visible, so
+  the irreversibility is observable; the volume penalty is a diagonal proxy,
+  not the full determinant; reachability is a linear probe, not a closed-loop
+  planner. The state probe is unstable on one seed (symmetric R² 0.019), which
+  is reported rather than dropped.
 - No real-world data, language, or cross-modal transfer.
 - H1b and H2-v3 are literal failures and remain so.
 
