@@ -134,7 +134,8 @@ def init_planning_history(episode: Episode) -> np.ndarray:
 
 
 def build_view_pairs(
-    episodes: list[Episode], per_episode: int = 4, seed: int = 0
+    episodes: list[Episode], per_episode: int = 4, seed: int = 0,
+    nuisance_fn=sample_nuisance,
 ) -> list[ViewPair]:
     """Good views: same state, independent nuisance."""
     rng = np.random.default_rng(seed)
@@ -143,7 +144,7 @@ def build_view_pairs(
         n = min(per_episode, len(ep.states))
         for t in rng.choice(len(ep.states), size=n, replace=False):
             t = int(t)
-            other = sample_nuisance(rng)
+            other = nuisance_fn(rng)
             pairs.append(
                 ViewPair(
                     obs1=ep.frames[history_indices(t)],

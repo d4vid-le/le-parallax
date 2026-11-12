@@ -53,6 +53,11 @@ def sample_nuisance_shift(rng: np.random.Generator) -> np.ndarray:
     ).astype(np.float32)
 
 
+def sample_nuisance_mix(rng: np.random.Generator) -> np.ndarray:
+    """50/50 normal and shifted nuisance, for domain randomization."""
+    return sample_nuisance_shift(rng) if rng.random() < 0.5 else sample_nuisance(rng)
+
+
 def _state_to_px(x: float, y: float, nuisance: np.ndarray, size: int):
     cam_x, cam_y = nuisance[-2], nuisance[-1]
     px = (x + cam_x) * (size - 1)
@@ -139,9 +144,17 @@ def generate_episode(
     size: int = IMAGE_SIZE,
     goal_directed: float = 0.0,
     nuisance_shift: bool = False,
+    nuisance_mode: str = "normal",
 ) -> Episode:
     state, goal = _initial_state(rng)
-    nuisance = sample_nuisance_shift(rng) if nuisance_shift else sample_nuisance(rng)
+    if nuisance_mode == "normal":
+        nuisance = sample_nuisance(rng)
+    elif nuisance_mode == "shift":
+        nuisance = sample_nuisance_shift(rng)
+    elif nuisance_mode == "mix":
+        nuisance = sample_nuisance_mix(rng)
+    else:
+        raise ValueError(f"unknown nuisance_mode: {nuisance_mode}")
     states = [state.copy()]
     actions = []
     for _ in range(steps):
@@ -175,12 +188,13 @@ def generate_episodes(
     seed: int = 0,
     goal_directed: float = 0.0,
     nuisance_shift: bool = False,
+    nuisance_mode: str = "normal",
 ) -> list[Episode]:
     rng = np.random.default_rng(seed)
     return [
         generate_episode(
             rng, steps=steps, size=size, goal_directed=goal_directed,
-            nuisance_shift=nuisance_shift,
+            nuisance_shift=nuisance_shift, nuisance_mode=nuisance_mode,
         )
         for _ in range(n)
     ]

@@ -163,6 +163,11 @@ better, but both negative. The shift is outside the encoder's training support;
 this is a readout-limited negative, not a clean dissociation. See
 [`docs/H2V2-CONFIRM.md`](docs/H2V2-CONFIRM.md).
 
+The readout diagnostic (linear vs MLP) found both readouts negative OOD: good
+R² −0.074 vs temporal −1.290, MLP no better. The encoder's OOD support is the
+limit. H2-v3 domain-randomizes encoder training and tests a held-out shift inside
+the support. See [`docs/READOUT-DIAGNOSTIC.md`](docs/READOUT-DIAGNOSTIC.md).
+
 **Why it matters.** This is the translation from representation to control. The
 paper's 42× sample-efficiency claim is about alignment, not planning; H2 tests
 whether it survives the translation.

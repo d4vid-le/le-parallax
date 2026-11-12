@@ -171,6 +171,12 @@ outside the encoder's training support. Next: domain-randomize encoder training
 and test on a held-out shift inside the support. See
 [`docs/H2V2-CONFIRM.md`](docs/H2V2-CONFIRM.md).
 
+**Readout diagnostic (2026-11-12):** linear and MLP readouts both negative OOD
+(good −0.074 vs temporal −1.290); nonlinearity does not help. The encoder's OOD
+support is the wall. H2-v3 trains both arms with domain randomization and tests a
+held-out shift inside the support. See
+[`docs/READOUT-DIAGNOSTIC.md`](docs/READOUT-DIAGNOSTIC.md).
+
 ---
 
 ## 6. Phase 2 — the simulated benchmark (weeks 4–5)

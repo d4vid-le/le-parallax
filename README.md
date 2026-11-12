@@ -145,6 +145,12 @@ outside the encoder's training support. Next: domain-randomize encoder training
 and test on a held-out shift inside the support. See
 [`docs/H2V2-CONFIRM.md`](docs/H2V2-CONFIRM.md).
 
+The readout diagnostic found the same wall one layer deeper: good-view OOD R² is
+**−0.074** vs temporal **−1.290**, but both are negative, and an MLP readout does
+not help. The encoder's OOD support is the limit. H2-v3 trains both arms with
+domain randomization and tests a held-out shift inside that support. See
+[`docs/READOUT-DIAGNOSTIC.md`](docs/READOUT-DIAGNOSTIC.md).
+
 ![Same state under two nuisance styles](snapshots/overview.png)
 
 ## Running Phase 0
@@ -181,6 +187,8 @@ docs/H1-CONFIRM.md     confirmatory H1 result
 docs/H2-CONFIRM.md     confirmatory H2 result
 docs/PLANNER-DIAGNOSTIC.md  oracle vs CEM vs state-feedback
 docs/H2V2-CONFIRM.md   state-feedback + robust readout result
+docs/READOUT-DIAGNOSTIC.md  linear vs MLP readout
+docs/PREREG-H2v3.md   domain-randomized encoder protocol
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 
