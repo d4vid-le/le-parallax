@@ -286,10 +286,15 @@ direction positive (+0.080 vs −0.019, margin +0.099). An expanded 340k model a
 60 epochs with cosine decay is worse: state R² 0.610/0.509/0.662/0.623,
 direction margin −0.009, bounded std 0.882. The partial-observation manipulation
 is right, but capacity is not the state bottleneck, and the 0.80 guardrail and
-+0.10 margin are still missed. The trial is suggestive, not confirmatory. See
++0.10 margin are still missed. The oracle check shows the observation supports
+**0.935** 4D state R² (0.978 x,y) with a 46,830-parameter CNN; the oracle-relative
+guardrail is **0.842**, and the JEPA's 0.671 is a real representation gap. A
+stop-gradient MLP head does not recover more state (0.564 vs 0.671 linear). The
+trial is suggestive, not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
-[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md), and
-[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md).
+[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
+[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md), and
+[`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md).
 
 ## 7. H4 — the transfer claim
 

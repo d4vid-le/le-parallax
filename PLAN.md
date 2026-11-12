@@ -268,7 +268,11 @@ are nuisance-specific, not dynamics-immune. See
   −0.019, margin +0.099). An expanded 340k model at 60 epochs is worse: state
   R² 0.610–0.662, direction margin −0.009, bounded std 0.882. The 0.80
   guardrail and the +0.10 margin are still missed; the 5-seed matrix is not
-  started. Inconclusive, not confirmatory.
+  started. The oracle CNN reaches **0.935** 4D state R² on the same observations;
+  the oracle-relative guardrail is **0.842**, and the JEPA's 0.671 is a real
+  representation gap. The stop-gradient MLP head is worse than linear (0.564 vs
+  0.671). Next: a separate state encoder with gradient isolation. Inconclusive,
+  not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

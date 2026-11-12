@@ -64,21 +64,43 @@ Capacity and the dedicated frame head are not the state fix.
 - **The pre-merge frame head as a state path.** The frame features are not
   linearly state-decodable; the head is 0.24–0.31.
 
+## The oracle check
+
+A standalone **46,830-parameter CNN** on the same 3-frame occluded observations
+reaches:
+
+- **x,y R² 0.978**
+- **4-D state R² 0.935**
+- position 0.984, velocity 0.887
+
+The oracle-relative guardrail is **0.90 × 0.935 = 0.842** — higher than 0.80,
+not lower. The JEPA's best state R² is **0.695**, and `asym_clean` is **0.671**.
+The state gap is **0.171** below the oracle-relative guardrail.
+
+The stop-gradient MLP probe does **not** recover more state: **0.564** vs
+**0.671** for the linear probe (position 0.708 vs 0.707; velocity 0.420 vs
+0.635). The latent's state information is linear and insufficient. The readout
+is not the bottleneck.
+
 ## Verdict
 
-**Phase 2 is not confirmatory.** The occluded-door manipulation is right and the
-direction signal appeared once, but the state guardrail never cleared and the
-direction margin is unstable. Running five seeds at state R² ~0.66–0.70 would
-produce five inconclusive runs. We stopped before that.
+**Phase 2 is not confirmatory, and the guardrail is real.**
+
+The occluded-door manipulation is right and the direction signal appeared once,
+but the state guardrail never cleared and the direction margin is unstable. The
+oracle check rules out the "0.80 is impossible" explanation: the observation
+supports **0.935** 4D state R². The JEPA is losing state information that a
+47k CNN recovers. Running five seeds at state R² ~0.66–0.70 would produce five
+inconclusive runs. We stopped before that.
 
 ## The next move
 
 A **separate state encoder with gradient isolation** — a small CNN trained only
-on the state loss, independent of the JEPA backbone and the pair heads. That is
-the clean test of the decoupling idea. If it also fails to reach 0.80, the
-state guardrail is not reachable with this observation/model, and Phase 2 should
-be abandoned rather than forced.
+on the state loss, independent of the JEPA backbone and the pair heads. The
+oracle proves that such a CNN can reach the state; the shared JEPA encoder is
+the thing to fix. If the separate encoder also fails, the problem is the data or
+the task, not the architecture.
 
-The broader lesson: for this world, the bottleneck is the **state observation
-and readout**, not the pair weight or the parameter count. More capacity is not
-a substitute for a state path that actually sees the puck.
+The broader lesson: for this world, the bottleneck is the **state path inside
+the JEPA**, not the pair weight, the parameter count, or the readout. More
+capacity is not a substitute for a state path that actually sees the puck.

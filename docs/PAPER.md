@@ -496,10 +496,16 @@ the direction positive (`asym_clean` **+0.080** vs `sym_head` **−0.019**, a
 improve. An expanded **340,784-parameter** model at 60 epochs with cosine decay
 was worse, not better: state R² **0.610 / 0.509 / 0.662 / 0.623**, direction
 margin **−0.009**, bounded std **0.882**. Capacity is not the state bottleneck;
-the five-seed run is not started. See
+the five-seed run is not started. An oracle check closes the question: a
+**46,830-parameter** CNN on the same three-frame observations reaches **0.935**
+4-D state R² (**0.978** x,y), so the oracle-relative guardrail is **0.842** and
+the JEPA's **0.671** is a genuine representation gap. A stop-gradient MLP probe
+does not recover more state (**0.564** vs 0.671 linear); the readout is not the
+bottleneck. The next move is a separate state encoder. See
 [`PHASE2-PILOT.md`](PHASE2-PILOT.md),
-[`PHASE2-TUNING.md`](PHASE2-TUNING.md), and
-[`PHASE2-CAPACITY.md`](PHASE2-CAPACITY.md).
+[`PHASE2-TUNING.md`](PHASE2-TUNING.md),
+[`PHASE2-CAPACITY.md`](PHASE2-CAPACITY.md), and
+[`PHASE2-ORACLE.md`](PHASE2-ORACLE.md).
 
 ### 6.4 Why the effect appears in control only after domain randomization
 
@@ -582,6 +588,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Phase 2 pilot | `scripts/asymmetry_collision.py`, `scripts/phase2_planner.py` | `docs/PREREG-PHASE2.md`, `docs/PHASE2-CONCLUSION.md` |
 | Phase 2 tuning | `scripts/asymmetry_collision.py`, `scripts/state_probe_nonlinear.py` | `docs/PHASE2-TUNING.md` |
 | Phase 2 capacity | `scripts/asymmetry_collision.py` | `docs/PHASE2-CAPACITY.md` |
+| Phase 2 oracle | `scripts/oracle_state_cnn.py`, `scripts/state_probe_mlp.py` | `docs/PHASE2-ORACLE.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -633,6 +640,8 @@ Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 | Phase 2 planner | 64 random shots + controller, horizon 6, threshold p90 reachable |
 | Phase 2 tuning | pre-merge 128→4 state head; `λ_pair=0.08`, `λ_var=0.2`, 40 epochs |
 | Phase 2 capacity | 340,784 params, latent 128, width 1.25; 60 epochs cosine; `λ_pair=0.10`, `λ_var=0.10` |
+| Oracle CNN | 46,830 params; conv 24/40/40; 3-frame history; 100 epochs, 3 seeds |
+| SG MLP probe | 64→256→256→4; frozen encoder; 3 probe seeds, early stopping |
 
 ## References
 

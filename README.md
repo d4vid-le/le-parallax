@@ -226,10 +226,16 @@ and keeps the direction positive (`asym_clean` **+0.080** vs `sym_head`
 **−0.019**, margin +0.099), but the state guardrail still fails and the planner
 is flat. The expanded **340,784-parameter** model at 60 epochs was worse: state
 R² **0.610–0.662**, direction margin **−0.009**, bounded std **0.882**. Capacity
-is not the state bottleneck, so the five-seed matrix is **not** started. See
+is not the state bottleneck, so the five-seed matrix is **not** started. The
+oracle check settles the ceiling question: a **46,830-parameter** CNN on the
+same observations reaches **0.935** 4-D state R² (**0.978** x,y), so the
+oracle-relative guardrail is **0.842** and the JEPA’s **0.671** is a real
+representation gap. A stop-gradient MLP probe does not recover more state
+(**0.564** vs 0.671 linear). The next move is a separate state encoder. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
-[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md), and
+[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),
+[`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md), and
 [`docs/PHASE2-CONCLUSION.md`](docs/PHASE2-CONCLUSION.md).
 
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
@@ -298,6 +304,7 @@ docs/PHASE2-PILOT.md      Phase 2 pilot (inconclusive)
 docs/PHASE2-TUNING.md     lower pair pressure + pre-merge state head
 docs/PHASE2-CAPACITY.md   expanded 340k model / 60-epoch sweep
 docs/PHASE2-CONCLUSION.md Phase 2 verdict: guardrail not cleared
+docs/PHASE2-ORACLE.md     oracle ceiling + stop-gradient probe
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 
