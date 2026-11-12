@@ -1,3 +1,5 @@
+> The confirmatory H1 protocol is [`PREREG-v2.md`](PREREG-v2.md); this file is the original template written before the pilot.
+
 # Pre-registration template
 
 Copy this file to `docs/PREREG-<experiment>.md`, fill it in, commit it, and record

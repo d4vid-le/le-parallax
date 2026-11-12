@@ -113,8 +113,15 @@ held-out episodes. Its same-state nuisance distance is **1.25×** its
 between-state distance: the latent is more sensitive to nuisance than to state.
 That is the target for the good-view arms.
 
-The good-view and bad-view data modes are the next implementation step. There is
-no confirmatory result yet; see [`docs/PHASE0.md`](docs/PHASE0.md).
+The good-view and bad-view modes are implemented. The exploratory pilot
+([`docs/PILOT-VIEWS.md`](docs/PILOT-VIEWS.md)) found that good views reduce the
+same-state nuisance ratio in every seed — 96px means **2.22 → 0.81**, with state
+probe **0.62 → 0.86** — while bad views make it worse (**3.69** at 64px). The
+original absolute `<0.5` threshold was not met; the confirmatory protocol uses a
+paired relative endpoint ([`docs/PREREG-v2.md`](docs/PREREG-v2.md)). No
+confirmatory result yet.
+
+![Same state under two nuisance styles](snapshots/overview.png)
 
 ## Running Phase 0
 
@@ -124,6 +131,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 
 python scripts/phase0.py --episodes 48 --steps 32 --size 64 --epochs 60
+python scripts/pilot_views.py --episodes 48 --steps 32 --size 96 --epochs 60
 pytest -q
 ```
 
@@ -140,8 +148,11 @@ HYPOTHESIS.md          formal claims, predictions, falsifiers
 PLAN.md                phases, arms, metrics, compute, gates
 leparallax/            world, data, model, training, probes, planner
 scripts/phase0.py      end-to-end baseline
+snapshots/              simulation snapshots (PNG)
 docs/PHASE0.md         baseline report and failure log
+docs/PILOT-VIEWS.md    exploratory good/bad-view pilot
 docs/PREREG.md         pre-registration template for the first experiment
+docs/PREREG-v2.md      confirmatory H1 protocol
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

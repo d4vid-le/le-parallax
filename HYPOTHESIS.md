@@ -106,6 +106,14 @@ the standard prediction loss and the shared auxiliary objectives.
 0.6, or bad views improve the ratio as much as good views. In that case the
 theorem does not transfer to this regime, and we report it.
 
+**Pilot update (exploratory).** A three-seed pilot found good views reduce the
+ratio in every seed: 64px mean **1.86 → 0.93**, 96px mean **2.22 → 0.81**, with
+state probe **0.62 → 0.86** at 96px. The absolute `<0.5` threshold was not met
+on average; one 96px run reached 0.392 but did not replicate. The confirmatory
+endpoint is the paired relative reduction in
+[`docs/PREREG-v2.md`](docs/PREREG-v2.md), frozen before the confirmatory run. The
+original threshold remains here for the record.
+
 **Why it matters.** This is the manipulation check. If the good-view term does
 not move the latent toward nuisance invariance, any control gain would be a
 coincidence.

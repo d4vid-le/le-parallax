@@ -140,8 +140,14 @@ the weight before the confirmatory run.
 Confirmatory: three seeds, all arms, all data fractions. Pre-register the H1/H2
 thresholds.
 
-**Gate 1:** H1 shows the predicted probe ordering. If not, stop and write the
-negative. Do not proceed to control claims.
+**Pilot result (exploratory).** Good views reduced the ratio in every seed:
+64px mean 1.86 → 0.93; 96px mean 2.22 → 0.81; state probe 0.62 → 0.86 at 96px.
+Bad views made it worse (3.69 at 64px). The absolute `<0.5` threshold was not
+met, so the confirmatory protocol uses a paired relative endpoint
+([`docs/PREREG-v2.md`](docs/PREREG-v2.md)).
+
+**Gate 1 status:** direction consistent; absolute threshold not met;
+confirmatory run pending. Do not claim H1 yet.
 
 **Gate 2:** H2 shows an OOD gain with no meaningful ID regression. If H2 fails
 but H1 passes, the result is the invariance–control trade-off; write that.

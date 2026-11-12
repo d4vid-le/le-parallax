@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+from PIL import Image
 
-from .world import Episode, HISTORY, history_indices, render_state
+from .world import Episode, HISTORY, history_indices, render_state, sample_nuisance
 
 
 @dataclass
@@ -20,6 +21,13 @@ class TemporalSample:
     action2: np.ndarray    # (2,)  next action
     next_next_obs: np.ndarray  # (H, h, w, 3)
     state2: np.ndarray     # (4,)  state after two steps
+
+
+@dataclass
+class ViewPair:
+    obs1: np.ndarray      # (H, h, w, 3) uint8
+    obs2: np.ndarray      # (H, h, w, 3) uint8
+    state: np.ndarray     # (4,)
 
 
 @dataclass
@@ -123,3 +131,64 @@ def goal_obs(
 
 def init_planning_history(episode: Episode) -> np.ndarray:
     return episode.frames[history_indices(0)]
+
+
+def build_view_pairs(
+    episodes: list[Episode], per_episode: int = 4, seed: int = 0
+) -> list[ViewPair]:
+    """Good views: same state, independent nuisance."""
+    rng = np.random.default_rng(seed)
+    pairs = []
+    for ep in episodes:
+        n = min(per_episode, len(ep.states))
+        for t in rng.choice(len(ep.states), size=n, replace=False):
+            t = int(t)
+            other = sample_nuisance(rng)
+            pairs.append(
+                ViewPair(
+                    obs1=ep.frames[history_indices(t)],
+                    obs2=history_obs(ep, t, other),
+                    state=ep.states[t],
+                )
+            )
+    return pairs
+
+
+def _crop_stack(obs: np.ndarray, rng: np.random.Generator, scale: float = 0.72):
+    h, w = obs.shape[1:3]
+    side = int(min(h, w) * scale)
+    x = int(rng.integers(0, w - side + 1))
+    y = int(rng.integers(0, h - side + 1))
+    out = []
+    for frame in obs:
+        crop = Image.fromarray(frame[y : y + side, x : x + side])
+        out.append(np.asarray(crop.resize((w, h), Image.BILINEAR)))
+    return np.stack(out)
+
+
+def build_bad_view_pairs(
+    episodes: list[Episode], per_episode: int = 4, seed: int = 0
+) -> list[ViewPair]:
+    """Bad views: two crops of one observation (shared nuisance)."""
+    rng = np.random.default_rng(seed)
+    pairs = []
+    for ep in episodes:
+        n = min(per_episode, len(ep.states))
+        for t in rng.choice(len(ep.states), size=n, replace=False):
+            t = int(t)
+            obs = ep.frames[history_indices(t)]
+            pairs.append(
+                ViewPair(
+                    obs1=_crop_stack(obs, rng),
+                    obs2=_crop_stack(obs, rng),
+                    state=ep.states[t],
+                )
+            )
+    return pairs
+
+
+def collate_views(pairs: list[ViewPair], indices: np.ndarray):
+    obs1 = np.stack([pairs[i].obs1 for i in indices]).astype(np.float32) / 255.0
+    obs2 = np.stack([pairs[i].obs2 for i in indices]).astype(np.float32) / 255.0
+    state = np.stack([pairs[i].state for i in indices]).astype(np.float32)
+    return obs1, obs2, state
