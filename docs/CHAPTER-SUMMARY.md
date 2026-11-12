@@ -13,19 +13,21 @@ stability–plasticity trade-off.
 
 ---
 
-## 1. The three confirmed results
+## 1. The core results and the boundary
 
 | Result | Experiment | Metric | Effect | Evidence |
 |---|---|---|---|---|
 | **Mechanism** | H1 confirmatory | same-state nuisance ratio | **0.114** of temporal (95% CI 0.089–0.143), **5/5** seeds; state probe 0.90–0.95 vs 0.69–0.87; bad views **6.71** | `docs/H1-CONFIRM.md` |
 | **Control** | H2-v4 success replication | OOD success | **+23 points** (68% → 91%), 95% CI +10 to +37, **4/5** seeds, McNemar **p = 0.0001**; OOD distance −0.036 | `docs/H2V4-CONFIRM.md` |
 | **Retention** | H3 forgetting | A-state R² after B adaptation | **+0.229** (95% CI 0.161–0.298), **5/5** seeds; forgetting **0.025 vs 0.132** (~81% less); B post +0.005 mean | `docs/H3-CONFIRM.md` |
+| **Boundary** | H3b dynamics shift | A predictor MSE after B adaptation | good **worse** by **0.00626** (5/5 seeds); both adapt to B (B post essentially tied) | `docs/H3B-CONFIRM.md` |
 
 The one-line story:
 
 > Good views force the encoder to keep what survives independent nuisance. That
 > cleaner state geometry makes the latent more readable, makes control more
-> robust to a nuisance shift, and makes continual adaptation forget less.
+> robust to a nuisance shift, and makes continual adaptation forget less — but
+> it does not protect against a dynamics shift. The mechanism is specific.
 
 ---
 
@@ -56,6 +58,8 @@ credible.
 - **It survives adaptation.** After fine-tuning on the shifted domain, the
   good-view latent retains the original state geometry far better (forgetting
   0.025 vs 0.132).
+- **The mechanism is specific.** It does not protect against a dynamics shift;
+  good was slightly worse on A in H3b, while both arms adapted to B.
 - **No free lunch.** Residual nuisance remains; forgetting is reduced, not
   eliminated; one seed pays a plasticity cost.
 
@@ -89,13 +93,11 @@ without changing the planner or the model size.
 
 ## 6. Next
 
-1. **H3b — dynamics shift.** Show the boundary: good views should not protect
-   against a changed dynamics model. That would complete the stability–plasticity
-   story.
-2. **H4 — cross-modal rotation.** Separately trained vision/proprio encoders
+1. **H4 — cross-modal rotation.** Separately trained vision/proprio encoders
    align up to a rotation; test modularity.
-3. **Write-up.** The three-part result is coherent enough for a research note.
-   The failures belong in the paper, not the appendix.
+2. **Write-up.** The four-part result — mechanism, control, retention, boundary —
+   is coherent enough for a research note. The failures belong in the paper, not
+   the appendix.
 
 The honest short version:
 

@@ -171,9 +171,15 @@ average. Forgetting is reduced, not eliminated, and seed 4 shows a real
 stability–plasticity trade-off (B −0.162 while A gains +0.347). See
 [`docs/H3-CONFIRM.md`](docs/H3-CONFIRM.md).
 
-**The chapter in three results:** mechanism (H1), control (H2-v4), retention
-(H3). The full synthesis, including the failed endpoints and the caveats, is in
-[`docs/CHAPTER-SUMMARY.md`](docs/CHAPTER-SUMMARY.md).
+**H3b holds the boundary.** After adapting to a shifted **dynamics** model, good
+views have **no A-retention advantage**: good is worse by **0.00626** MSE
+(5/5 seeds), while both arms adapt to B and end essentially tied. Good views buy
+nuisance invariance, not dynamics immunity. See
+[`docs/H3B-CONFIRM.md`](docs/H3B-CONFIRM.md).
+
+**The chapter in four results:** mechanism (H1), control (H2-v4), retention
+(H3), boundary (H3b). The full synthesis, including the failed endpoints and the
+caveats, is in [`docs/CHAPTER-SUMMARY.md`](docs/CHAPTER-SUMMARY.md).
 
 ![Same state under two nuisance styles](snapshots/overview.png)
 

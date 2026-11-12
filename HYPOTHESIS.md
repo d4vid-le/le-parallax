@@ -225,6 +225,19 @@ continual-learning problem is not a representation problem.
 
 ---
 
+## 6b. H3b — the dynamics boundary
+
+**Claim.** The good-view retention advantage is specific to nuisance shift. Under
+a dynamics shift, good views should not protect the original dynamics; both arms
+need adaptation.
+
+**Confirmatory result (2026-11-12).** **Boundary holds.** After adapting to
+`[damping=0.65, gain=0.32]`, the good-view A predictor MSE is **0.00626 worse**
+than temporal in 5/5 seeds; mean A forgetting is **+0.00532** for good vs
+**−0.00052** for temporal. Both arms adapt to B and end essentially tied
+(B post difference −0.00042). Good views do not transfer to dynamics. See
+[`docs/H3B-CONFIRM.md`](docs/H3B-CONFIRM.md).
+
 ## 7. H4 — the transfer claim
 
 **Claim.** Vision and proprioception encoders trained **separately** with good

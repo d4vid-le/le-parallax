@@ -240,6 +240,11 @@ adaptation is +0.229 higher (95% CI 0.161–0.298), 5/5 seeds; forgetting 0.025 
 0.132; B post +0.005 mean, with a seed-4 trade-off. Control retention (H3b) is
 still open. See [`docs/H3-CONFIRM.md`](docs/H3-CONFIRM.md).
 
+**H3b status (2026-11-12): boundary holds.** Dynamics shift `[0.65, 0.32]`; good
+A predictor MSE is 0.00626 worse than temporal (5/5), both adapt to B. Good views
+are nuisance-specific, not dynamics-immune. See
+[`docs/H3B-CONFIRM.md`](docs/H3B-CONFIRM.md).
+
 ---
 
 ## 8. Phase 4 — modular alignment (week 8, optional)
