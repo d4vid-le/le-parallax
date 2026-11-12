@@ -18,6 +18,7 @@ ACTION_DIM = 2
 NUISANCE_DIM = 11
 IMAGE_SIZE = 96
 HISTORY = 3
+DEFAULT_DYNAMICS = np.array([0.85, 0.20], dtype=np.float32)
 
 
 @dataclass
@@ -27,6 +28,7 @@ class Episode:
     actions: np.ndarray     # (T, 2) float32
     goal: np.ndarray        # (2,) float32
     nuisance: np.ndarray    # (11,) float32
+    dynamics: np.ndarray    # (2,) [damping, action_gain]
 
 
 def sample_nuisance(rng: np.random.Generator) -> np.ndarray:
@@ -107,12 +109,15 @@ def render_state(
     return np.asarray(pil, dtype=np.uint8)
 
 
-def step_state(state: np.ndarray, action: np.ndarray) -> np.ndarray:
+def step_state(
+    state: np.ndarray, action: np.ndarray, dynamics: np.ndarray | None = None
+) -> np.ndarray:
     """One physics step. Walls absorb normal velocity."""
+    damping, gain = DEFAULT_DYNAMICS if dynamics is None else dynamics
     x, y, vx, vy = state
     ax, ay = np.clip(action, -1.0, 1.0)
-    vx = 0.85 * vx + 0.20 * ax
-    vy = 0.85 * vy + 0.20 * ay
+    vx = damping * vx + gain * ax
+    vy = damping * vy + gain * ay
     x = x + vx
     y = y + vy
     if x < 0.05:
@@ -145,7 +150,9 @@ def generate_episode(
     goal_directed: float = 0.0,
     nuisance_shift: bool = False,
     nuisance_mode: str = "normal",
+    dynamics: np.ndarray | None = None,
 ) -> Episode:
+    dynamics = DEFAULT_DYNAMICS if dynamics is None else np.asarray(dynamics, dtype=np.float32)
     state, goal = _initial_state(rng)
     if nuisance_mode == "normal":
         nuisance = sample_nuisance(rng)
@@ -165,7 +172,7 @@ def generate_episode(
         else:
             action = rng.uniform(-1.0, 1.0, size=2).astype(np.float32)
         actions.append(action)
-        state = step_state(state, action)
+        state = step_state(state, action, dynamics)
         states.append(state.copy())
 
     states_arr = np.stack(states).astype(np.float32)
@@ -178,6 +185,7 @@ def generate_episode(
         actions=np.stack(actions).astype(np.float32),
         goal=goal.astype(np.float32),
         nuisance=nuisance,
+        dynamics=dynamics.astype(np.float32),
     )
 
 
@@ -189,12 +197,14 @@ def generate_episodes(
     goal_directed: float = 0.0,
     nuisance_shift: bool = False,
     nuisance_mode: str = "normal",
+    dynamics: np.ndarray | None = None,
 ) -> list[Episode]:
     rng = np.random.default_rng(seed)
     return [
         generate_episode(
             rng, steps=steps, size=size, goal_directed=goal_directed,
             nuisance_shift=nuisance_shift, nuisance_mode=nuisance_mode,
+            dynamics=dynamics,
         )
         for _ in range(n)
     ]
