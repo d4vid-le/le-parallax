@@ -40,6 +40,19 @@ def sample_nuisance(rng: np.random.Generator) -> np.ndarray:
     ).astype(np.float32)
 
 
+def sample_nuisance_shift(rng: np.random.Generator) -> np.ndarray:
+    """Out-of-distribution nuisance: harsher light, brighter background,
+    darker puck palette, larger camera offset."""
+    angle = rng.uniform(0.0, 2.0 * np.pi)
+    strength = rng.uniform(0.80, 1.10)
+    bg = rng.uniform(0.20, 0.35, size=3)
+    puck = rng.uniform(0.20, 0.80, size=3)
+    cam = rng.uniform(-0.08, 0.08, size=2)
+    return np.concatenate(
+        [[np.sin(angle), np.cos(angle), strength], bg, puck, cam]
+    ).astype(np.float32)
+
+
 def _state_to_px(x: float, y: float, nuisance: np.ndarray, size: int):
     cam_x, cam_y = nuisance[-2], nuisance[-1]
     px = (x + cam_x) * (size - 1)
@@ -125,9 +138,10 @@ def generate_episode(
     steps: int = 32,
     size: int = IMAGE_SIZE,
     goal_directed: float = 0.0,
+    nuisance_shift: bool = False,
 ) -> Episode:
     state, goal = _initial_state(rng)
-    nuisance = sample_nuisance(rng)
+    nuisance = sample_nuisance_shift(rng) if nuisance_shift else sample_nuisance(rng)
     states = [state.copy()]
     actions = []
     for _ in range(steps):
@@ -160,10 +174,14 @@ def generate_episodes(
     size: int = IMAGE_SIZE,
     seed: int = 0,
     goal_directed: float = 0.0,
+    nuisance_shift: bool = False,
 ) -> list[Episode]:
     rng = np.random.default_rng(seed)
     return [
-        generate_episode(rng, steps=steps, size=size, goal_directed=goal_directed)
+        generate_episode(
+            rng, steps=steps, size=size, goal_directed=goal_directed,
+            nuisance_shift=nuisance_shift,
+        )
         for _ in range(n)
     ]
 

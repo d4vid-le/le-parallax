@@ -88,7 +88,6 @@ def train_jepa(
 
 
 def load_jepa(path: str | Path, image_size: int = 96) -> JEPA:
-    mx.random.seed(seed)
     model = JEPA(image_size=image_size)
     model.load_weights(str(path))
     return model
