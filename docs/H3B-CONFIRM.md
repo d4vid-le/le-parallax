@@ -70,3 +70,11 @@ H3b       boundary:    no dynamics protection; adaptation still required
 
 H3b is what makes the first three credible. The good-view effect is specific, not
 a generic “more invariance” claim.
+
+**Postscript (2026-11-12).** The collision suite later made the claim
+conditional. The four confirmatory results above hold in-distribution. Out of
+distribution, absolute state decoding fails without support (good shifted R²
+−0.049 vs temporal −0.840); support plus state alignment fixes it (CSA 0.828).
+On the dynamics boundary, a Le-Gates adapter needs a reliable router: soft
+gates leak, hard gates isolate only where the router is correct. See
+[`COLLISION-1B.md`](COLLISION-1B.md) and [`COLLISION-3.md`](COLLISION-3.md).
