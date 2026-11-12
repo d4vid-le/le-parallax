@@ -67,6 +67,7 @@ The one-line story:
 | **Le-Gates v1** | All gates forget A +146% to +155%. | A gate trained only on B has no signal to close on A. |
 | **Le-Gates v2** | Soft error gate routes (AUC 0.667) but forgets +104%. | Routing is not retention; the sigmoid leaks. |
 | **Le-Gates v3** | Hard gate forgets +26%, routes 18.5% of A. | The router, not the gate scalar, is the bottleneck. |
+| **Anti-Equivalence** | One-way door; volume arm Δasym +10.48 but forward R² 0.174 / reverse R² −7.71 and latent std 0.612; asym Δasym −0.142 vs symmetric +0.019, lower on 3/3 seeds; wrong-sign reach AUC 0.695. | The determinant penalty collapses; the matched reversible control removes the direction effect; the wrong-sign control gets the same reachability gain. Direction is not volume. |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -114,6 +115,10 @@ credible.
   forgetting at 10% replay.
 - A causal capacity story for Seed 4. The autopsy is one seed pair; it rejects a
   simple global rank-collapse explanation, not every allocation explanation.
+- A directed semi-lattice from asymmetric pair loss. The one-way-door pilot
+  falsified the operationalized version; the determinant/log-volume penalty
+  collapsed the latent, and the matched reversible control removed the apparent
+  direction effect.
 - A general claim about all world models. This is one synthetic world, one small
   model, five seeds.
 - Full H1 as pre-registered. H1b failed literally.

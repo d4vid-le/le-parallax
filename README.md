@@ -207,6 +207,14 @@ rank than Seed 1 in all good conditions, but A rank is higher than temporal and
 Seed 1 has lower B rank with better B R². Rank alone does not predict R². See
 [`docs/COLLISION-1-2.md`](docs/COLLISION-1-2.md).
 
+**Anti-Equivalence: direction is not volume.** A one-way door, an asymmetric
+pair loss, and a corrected log-volume penalty. The volume arm's huge apparent
+asymmetry (Δ +10.48) came with forward R² 0.174, reverse R² −7.71, and a latent
+std of 0.612 vs 0.919 for symmetric — collapse, not a causal slice. The
+asymmetric arm's Δasym was −0.142 vs +0.019 for symmetric, lower on 3/3 seeds;
+the wrong-sign control had the highest reachability AUC (0.695). See
+[`docs/COLLISION-4.md`](docs/COLLISION-4.md).
+
 **The chapter in seven results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, and Le-Gates
 router boundary. The full synthesis, including the failed endpoints and the
@@ -265,6 +273,8 @@ docs/PREREG-CSA.md        counterfactual state alignment protocol
 docs/COLLISION-3.md       Le-Gates v1/v2/v3 results
 docs/PREREG-LEGATES-V2.md soft-gate + anchor protocol
 docs/PREREG-LEGATES-V3.md hard-gate protocol
+docs/PREREG-ASYMMETRY.md  anti-equivalence / one-way-door protocol
+docs/COLLISION-4.md       anti-equivalence result
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

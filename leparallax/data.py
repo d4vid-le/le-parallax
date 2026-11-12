@@ -106,7 +106,14 @@ def history_obs(
     size = episode.frames.shape[1]
     return np.stack(
         [
-            render_state(episode.states[i], episode.goal, nuisance, size=size)
+            render_state(
+                episode.states[i], episode.goal, nuisance, size=size,
+                door_open=(
+                    bool(episode.door_open[i])
+                    if episode.door_open is not None
+                    else None
+                ),
+            )
             for i in idx
         ]
     )

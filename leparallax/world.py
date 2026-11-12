@@ -29,6 +29,7 @@ class Episode:
     goal: np.ndarray        # (2,) float32
     nuisance: np.ndarray    # (11,) float32
     dynamics: np.ndarray    # (2,) [damping, action_gain]
+    door_open: np.ndarray | None = None  # (T + 1,) bool, optional one-way door
 
 
 def sample_nuisance(rng: np.random.Generator) -> np.ndarray:
@@ -72,8 +73,13 @@ def render_state(
     goal: np.ndarray,
     nuisance: np.ndarray,
     size: int = IMAGE_SIZE,
+    door_open: bool | None = None,
 ) -> np.ndarray:
-    """Render one state. State is [x, y, vx, vy]; only position is visible."""
+    """Render one state. State is [x, y, vx, vy]; only position is visible.
+
+    If `door_open` is not None, draw the one-way door at x=0.5. An open door has
+    a gap from y=0.35 to 0.65; a closed door is solid.
+    """
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float32) / max(size - 1, 1)
 
     light_sin, light_cos, strength = nuisance[0], nuisance[1], nuisance[2]
@@ -94,6 +100,20 @@ def render_state(
     pil = Image.fromarray(img_u8, mode="RGB")
     draw = ImageDraw.Draw(pil)
 
+    if door_open is not None:
+        door_x, _ = _state_to_px(0.5, 0.5, nuisance, size)
+        _, y_top = _state_to_px(0.5, 0.0, nuisance, size)
+        _, y_gap0 = _state_to_px(0.5, 0.35, nuisance, size)
+        _, y_gap1 = _state_to_px(0.5, 0.65, nuisance, size)
+        _, y_bot = _state_to_px(0.5, 1.0, nuisance, size)
+        width = max(2, size // 32)
+        color = (210, 210, 210)
+        if door_open:
+            draw.line([(door_x, y_top), (door_x, y_gap0)], fill=color, width=width)
+            draw.line([(door_x, y_gap1), (door_x, y_bot)], fill=color, width=width)
+        else:
+            draw.line([(door_x, y_top), (door_x, y_bot)], fill=color, width=width)
+
     r = max(6, size // 12)
     gx, gy = _state_to_px(goal[0], goal[1], nuisance, size)
     draw.ellipse(
@@ -110,16 +130,33 @@ def render_state(
 
 
 def step_state(
-    state: np.ndarray, action: np.ndarray, dynamics: np.ndarray | None = None
+    state: np.ndarray,
+    action: np.ndarray,
+    dynamics: np.ndarray | None = None,
+    door_open: bool | None = None,
+    door_x: float = 0.5,
+    door_gap: tuple[float, float] = (0.35, 0.65),
 ) -> np.ndarray:
-    """One physics step. Walls absorb normal velocity."""
+    """One physics step. Walls absorb normal velocity.
+
+    If `door_open` is not None, a one-way door at `door_x` blocks crossing unless
+    it is open and the puck is inside `door_gap`.
+    """
     damping, gain = DEFAULT_DYNAMICS if dynamics is None else dynamics
     x, y, vx, vy = state
+    old_x = x
     ax, ay = np.clip(action, -1.0, 1.0)
     vx = damping * vx + gain * ax
     vy = damping * vy + gain * ay
     x = x + vx
     y = y + vy
+    if door_open is not None:
+        crossed = (old_x < door_x <= x) or (old_x > door_x >= x)
+        if crossed:
+            in_gap = door_gap[0] <= y <= door_gap[1]
+            if not (door_open and in_gap):
+                x = door_x - 1e-4 if old_x < door_x else door_x + 1e-4
+                vx = 0.0
     if x < 0.05:
         x, vx = 0.05, 0.0
     elif x > 0.95:
@@ -151,9 +188,21 @@ def generate_episode(
     nuisance_shift: bool = False,
     nuisance_mode: str = "normal",
     dynamics: np.ndarray | None = None,
+    one_way_door: bool = False,
+    door_goal_right: float = 0.6,
 ) -> Episode:
     dynamics = DEFAULT_DYNAMICS if dynamics is None else np.asarray(dynamics, dtype=np.float32)
     state, goal = _initial_state(rng)
+    if one_way_door:
+        state[0] = rng.uniform(0.15, 0.45)
+        for _ in range(100):
+            if rng.random() < door_goal_right:
+                goal[0] = rng.uniform(0.55, 0.90)
+            else:
+                goal[0] = rng.uniform(0.10, 0.45)
+            goal[1] = rng.uniform(0.10, 0.90)
+            if np.linalg.norm(goal - state[:2]) > 0.25:
+                break
     if nuisance_mode == "normal":
         nuisance = sample_nuisance(rng)
     elif nuisance_mode == "shift":
@@ -164,6 +213,8 @@ def generate_episode(
         raise ValueError(f"unknown nuisance_mode: {nuisance_mode}")
     states = [state.copy()]
     actions = []
+    door_open = True if one_way_door else None
+    door_flags = [door_open] if one_way_door else None
     for _ in range(steps):
         if rng.random() < goal_directed:
             direction = goal - state[:2]
@@ -172,12 +223,28 @@ def generate_episode(
         else:
             action = rng.uniform(-1.0, 1.0, size=2).astype(np.float32)
         actions.append(action)
-        state = step_state(state, action, dynamics)
+        old_x = state[0]
+        state = step_state(state, action, dynamics, door_open=door_open)
+        if (
+            one_way_door
+            and door_open
+            and old_x < 0.5 <= state[0]
+            and 0.35 <= state[1] <= 0.65
+        ):
+            door_open = False
         states.append(state.copy())
+        if door_flags is not None:
+            door_flags.append(door_open)
 
     states_arr = np.stack(states).astype(np.float32)
     frames = np.stack(
-        [render_state(s, goal, nuisance, size=size) for s in states_arr]
+        [
+            render_state(
+                s, goal, nuisance, size=size,
+                door_open=bool(door_flags[i]) if door_flags is not None else None,
+            )
+            for i, s in enumerate(states_arr)
+        ]
     )
     return Episode(
         frames=frames,
@@ -186,6 +253,7 @@ def generate_episode(
         goal=goal.astype(np.float32),
         nuisance=nuisance,
         dynamics=dynamics.astype(np.float32),
+        door_open=np.array(door_flags, dtype=bool) if door_flags is not None else None,
     )
 
 
@@ -198,13 +266,16 @@ def generate_episodes(
     nuisance_shift: bool = False,
     nuisance_mode: str = "normal",
     dynamics: np.ndarray | None = None,
+    one_way_door: bool = False,
+    door_goal_right: float = 0.6,
 ) -> list[Episode]:
     rng = np.random.default_rng(seed)
     return [
         generate_episode(
             rng, steps=steps, size=size, goal_directed=goal_directed,
             nuisance_shift=nuisance_shift, nuisance_mode=nuisance_mode,
-            dynamics=dynamics,
+            dynamics=dynamics, one_way_door=one_way_door,
+            door_goal_right=door_goal_right,
         )
         for _ in range(n)
     ]

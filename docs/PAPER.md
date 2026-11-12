@@ -46,7 +46,9 @@ control by **+0.10** with no normal loss. On a dynamics shift, a frozen-encoder
 Le-Gates adapter forgets the original dynamics: soft gates forget **+104% to
 +146%**, and a hard error gate cuts that to **+26%** but still routes **18.5%**
 of the original domain. The gate is the policy; isolation is the guarantee, and
-the router is the bottleneck.
+the router is the bottleneck. An anti-equivalence test on a one-way door also
+failed: the determinant-style volume penalty collapsed the latent, and a matched
+reversible control removed the apparent direction effect.
 
 The failures are part of the result: one pre-registered state-floor endpoint
 failed on a baseline seed, CEM was a broken planner before the control test, a
@@ -403,6 +405,7 @@ the isolation.
 | Le-Gates v1 | All gates forget A (+146% to +155%) | A gate trained only on B has no signal to close on A |
 | Le-Gates v2 | Soft error gate routes (AUC 0.667) but forgets +104% | Routing is not retention; the soft sigmoid leaks |
 | Le-Gates v3 | Hard gate forgets +26%, routes 18.5% of A | The router, not the gate scalar, is the bottleneck |
+| Anti-Equivalence | Volume arm Δasym +10.48 but forward R² 0.174 / reverse R² −7.71, latent std 0.612; asym Δasym −0.142 vs symmetric +0.019, lower 3/3; wrong-sign reach AUC 0.695 | The determinant penalty collapses; the matched control removes the direction effect; the wrong-sign control gets the same reachability gain |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -452,7 +455,28 @@ policy; isolation is the guarantee; the router is the bottleneck.** A reliable
 router (more replay, a learned detector with a false-open penalty, or structural
 masks) is the next requirement, not a better gate scalar.
 
-### 6.3 Why the effect appears in control only after domain randomization
+### 6.3 Anti-Equivalence: direction is not volume
+
+We also tested the stronger claim that an irreversible transition should produce
+a directed latent semi-lattice: A→B easy, B→A hard, `z_B` lower-rank. A one-way
+door gives a real irreversible event. The pilot falsified the operationalized
+version. An asymmetric forward/bottlenecked-reverse objective did not make A→B
+easier; its three-seed mean `Δasym` was **−0.142** vs **+0.019** for a symmetric
+pair loss, and it was lower on **3/3 seeds** (paired differences −0.059, −0.387,
+−0.039). The corrected log-volume penalty produced a huge apparent asymmetry
+(**+10.48**) only by shrinking the latent: forward R² **0.174**, reverse R²
+**−7.71**, latent std **0.612** vs 0.919. The wrong-sign control had the highest
+reachability AUC (**0.695**), so the reachability gain is not caused by the
+directed geometry. A matched reversible control with the same time gaps removed
+the apparent effect.
+
+The lesson: **direction is not volume.** A determinant penalty is a collapse
+knob unless it is paired with a sufficiency constraint. On a visible
+irreversible event the temporal model already has the information; a fair test
+needs an occlusion or a same-state counterfactual where the information is
+actually lost. See [`COLLISION-4.md`](COLLISION-4.md).
+
+### 6.4 Why the effect appears in control only after domain randomization
 
 The first control tests failed because the encoder had never seen the shifted
 nuisance; no readout could fix that. Once both arms had support, the good-view
@@ -463,7 +487,7 @@ a detail. CSA shows that support plus state-level alignment is enough to make
 the representation usable (0.828 shifted), and that alignment without support is
 not (CNA-v1: normal R² 0.739, shifted 0.282).
 
-### 6.4 Limitations
+### 6.5 Limitations
 
 - Synthetic 96px world; one model size (142k); five seeds.
 - State readout and two-step loss are auxiliary and shared; this is not a pure
@@ -483,6 +507,10 @@ not (CNA-v1: normal R² 0.739, shifted 0.282).
   causally.
 - The familiar-nuisance swap used training nuisance identities; it is not the
   OOD test.
+- The Anti-Equivalence pilot is one seed / 20 epochs; the two-seed confirmation
+  is pending. The door is visible, so the irreversibility is observable; the
+  volume penalty is a diagonal proxy, not the full determinant; reachability is
+  a linear probe, not a closed-loop planner.
 - No real-world data, language, or cross-modal transfer.
 - H1b and H2-v3 are literal failures and remain so.
 
@@ -521,6 +549,7 @@ invariance fix, and the collisions that break it are part of the result.
 | CSA | `scripts/csa_nuisance.py` | `docs/PREREG-CSA.md` |
 | Le-Gates v1/v2 | `scripts/legates_dynamics.py` | `docs/PREREG-COLLISION-2.md`, `docs/PREREG-LEGATES-V2.md` |
 | Le-Gates v3 hard | `scripts/legates_hard.py` | `docs/PREREG-LEGATES-V3.md` |
+| Anti-Equivalence | `scripts/asymmetry_collision.py` | `docs/PREREG-ASYMMETRY.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -538,6 +567,7 @@ Collision 48168a0df7e29371c3b568b4573f79332777471fc47cd186c476570a8b603c85
 CSA       ebe06189f15c3e9c42788e709b93d9f02c9ff491ce5682e8e99a7f259b9885c7
 LG-v2     d4dc847f6b2df2dd431292e9c91e98ffd9920ee68312fbf1defe458be3caea2c
 LG-v3     6d76fc43a881ba1210d16cacc92b55d1e98c2cc15798abfe2893fb8956fda6a5
+Asym      e1fc79ff68fb92d9a2a5552158ea1c1a17e89de90178d97e15a43302b275eea1
 ```
 
 ## Appendix B — Hyperparameters
@@ -561,6 +591,9 @@ LG-v3     6d76fc43a881ba1210d16cacc92b55d1e98c2cc15798abfe2893fb8956fda6a5
 | Le-Gates adaptation | 10 epochs, lr 1e-3, batch 32, weight decay 1e-4 |
 | Le-Gates anchor | 8 A episodes, distillation weight 1.0 |
 | Hard gate threshold | 95th percentile of A-anchor previous errors |
+| One-way door | `x=0.5`, gap `y∈[0.35,0.65]`, closes on first crossing |
+| Asym pair offsets | pre 2/4, post 2/4; reversible gaps 4/6/8 |
+| Asym training | 20 epochs, 5 warmup, `λ_pair=0.25`, `λ_state=0.25`, `λ_vol=0.05` |
 
 ## References
 

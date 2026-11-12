@@ -67,6 +67,27 @@ def test_temporal_sample_fields():
     assert state2.shape == (3, 4)
 
 
+def test_one_way_door_closes_and_blocks_return():
+    eps = generate_episodes(
+        1, steps=64, size=32, seed=0, goal_directed=0.5, one_way_door=True
+    )
+    ep = eps[0]
+    assert ep.door_open is not None
+    assert ep.door_open[0]
+    sides = ep.states[:, 0] >= 0.5
+    crossings = np.where((~sides[:-1]) & sides[1:])[0]
+    assert len(crossings) > 0
+    t = int(crossings[0])
+    assert ep.door_open[t]
+    assert not ep.door_open[t + 1]
+    s = ep.states[t + 1].copy()
+    for _ in range(20):
+        s = step_state(
+            s, np.array([-1.0, 0.0], dtype=np.float32), door_open=False
+        )
+    assert s[0] >= 0.5
+
+
 def test_history_obs_can_rerender_nuisance():
     eps = generate_episodes(1, steps=4, size=32, seed=0)
     ep = eps[0]

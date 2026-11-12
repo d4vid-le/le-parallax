@@ -255,10 +255,16 @@ are nuisance-specific, not dynamics-immune. See
   hard + 10% anchor **+26%**, routing **18.5%** of A. The router is the
   bottleneck.
 - **Capacity:** Seed 4 is domain-specific allocation, not global rank collapse.
+- **Anti-Equivalence:** one-way door; the corrected volume penalty collapsed the
+  latent (reverse R² −7.71, std 0.612), the asymmetric arm's Δasym was −0.142 vs
+  symmetric +0.019 (lower 3/3), and the wrong-sign control had the highest
+  reachability AUC (0.695). The hypothesis is not supported in this
+  observable-door setting.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
-[`docs/COLLISION-3.md`](docs/COLLISION-3.md), and
-[`docs/COLLISION-1-2.md`](docs/COLLISION-1-2.md).
+[`docs/COLLISION-3.md`](docs/COLLISION-3.md),
+[`docs/COLLISION-1-2.md`](docs/COLLISION-1-2.md), and
+[`docs/COLLISION-4.md`](docs/COLLISION-4.md).
 
 ---
 
