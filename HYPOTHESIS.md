@@ -174,6 +174,11 @@ from **60% to 88%** (+28 points, all five seeds positive). The distance endpoint
 was near-saturated. H2-v4 is a success-primary replication on fresh episodes. See
 [`docs/H2V3-CONFIRM.md`](docs/H2V3-CONFIRM.md).
 
+H2-v4 is the success-primary replication on fresh episodes: good-view OOD
+success **88% vs 65%** (**+23 points**, 95% CI +10 to +37), 4/5 seeds positive,
+pooled McNemar **p = 0.0001**; OOD distance −0.036; ID improves. **PASS.** See
+[`docs/H2V4-CONFIRM.md`](docs/H2V4-CONFIRM.md).
+
 **Why it matters.** This is the translation from representation to control. The
 paper's 42× sample-efficiency claim is about alignment, not planning; H2 tests
 whether it survives the translation.

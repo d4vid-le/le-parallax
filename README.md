@@ -158,6 +158,13 @@ positive**). The distance endpoint was near-saturated; success is the control
 metric that matters. H2-v4 is a success-primary replication on fresh episodes. See
 [`docs/H2V3-CONFIRM.md`](docs/H2V3-CONFIRM.md).
 
+**H2-v4 passes.** Success-primary replication on fresh episodes: good-view OOD
+success **88% vs 65%** (**+23 points**, 95% CI **+10 to +37**), **4/5 seeds**
+positive, pooled McNemar **p = 0.0001**. OOD distance also improves (−0.036), and
+ID improves. The representation-to-control bridge holds under domain
+randomization. See [`docs/H2V4-CONFIRM.md`](docs/H2V4-CONFIRM.md). Next: H3,
+continual retention.
+
 ![Same state under two nuisance styles](snapshots/overview.png)
 
 ## Running Phase 0
@@ -198,6 +205,7 @@ docs/READOUT-DIAGNOSTIC.md  linear vs MLP readout
 docs/PREREG-H2v3.md   domain-randomized encoder protocol
 docs/H2V3-CONFIRM.md  domain-randomized result
 docs/PREREG-H2v4.md   success-primary replication protocol
+docs/H2V4-CONFIRM.md  success-primary result
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

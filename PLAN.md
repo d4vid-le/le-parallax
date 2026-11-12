@@ -182,6 +182,12 @@ lower, CI excludes zero; OOD success 88% vs 60% (+28 points, all seeds positive)
 H2-v4 success-primary replication is running. See
 [`docs/H2V3-CONFIRM.md`](docs/H2V3-CONFIRM.md).
 
+**H2-v4 status (2026-11-12):** **PASS.** Success-primary replication on fresh
+episodes: +23 points (95% CI +10 to +37), 4/5 seeds positive, pooled McNemar
+p = 0.0001; OOD distance −0.036; ID improves. The representation-to-control
+bridge holds under domain randomization. Next: H3 continual retention. See
+[`docs/H2V4-CONFIRM.md`](docs/H2V4-CONFIRM.md).
+
 ---
 
 ## 6. Phase 2 — the simulated benchmark (weeks 4–5)
