@@ -228,8 +228,9 @@ is flat. The expanded **340,784-parameter** model at 60 epochs was worse: state
 R² **0.610–0.662**, direction margin **−0.009**, bounded std **0.882**. Capacity
 is not the state bottleneck, so the five-seed matrix is **not** started. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
-[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md), and
-[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md).
+[`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
+[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md), and
+[`docs/PHASE2-CONCLUSION.md`](docs/PHASE2-CONCLUSION.md).
 
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
@@ -296,6 +297,7 @@ docs/PREREG-PHASE2.md     partial observation / matched heads / planner
 docs/PHASE2-PILOT.md      Phase 2 pilot (inconclusive)
 docs/PHASE2-TUNING.md     lower pair pressure + pre-merge state head
 docs/PHASE2-CAPACITY.md   expanded 340k model / 60-epoch sweep
+docs/PHASE2-CONCLUSION.md Phase 2 verdict: guardrail not cleared
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

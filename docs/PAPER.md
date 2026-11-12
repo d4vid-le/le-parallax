@@ -552,7 +552,10 @@ fails, even though good views degrade far less than temporal. Support plus
 counterfactual state alignment restores usable OOD geometry and beats a
 domain-exposure control. On the dynamics boundary, a frozen-encoder adapter
 needs a retention signal and a reliable router; a soft gate leaks, and a hard
-gate with 10% replay routes too much of the original domain.
+gate with 10% replay routes too much of the original domain. The occluded-door
+Anti-Equivalence test flips the direction sign but never clears the state
+guardrail; scaling the model from 142k to 340k parameters made state readback
+worse. The state path, not the pair weight, is the next frontier.
 
 Positive-pair geometry is a conditional lever for continual world models:
 **support first, then alignment; gating is not retention.** It is not a universal
@@ -576,7 +579,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Le-Gates v1/v2 | `scripts/legates_dynamics.py` | `docs/PREREG-COLLISION-2.md`, `docs/PREREG-LEGATES-V2.md` |
 | Le-Gates v3 hard | `scripts/legates_hard.py` | `docs/PREREG-LEGATES-V3.md` |
 | Anti-Equivalence | `scripts/asymmetry_collision.py` | `docs/PREREG-ASYMMETRY.md` |
-| Phase 2 pilot | `scripts/asymmetry_collision.py`, `scripts/phase2_planner.py` | `docs/PREREG-PHASE2.md` |
+| Phase 2 pilot | `scripts/asymmetry_collision.py`, `scripts/phase2_planner.py` | `docs/PREREG-PHASE2.md`, `docs/PHASE2-CONCLUSION.md` |
 | Phase 2 tuning | `scripts/asymmetry_collision.py`, `scripts/state_probe_nonlinear.py` | `docs/PHASE2-TUNING.md` |
 | Phase 2 capacity | `scripts/asymmetry_collision.py` | `docs/PHASE2-CAPACITY.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |

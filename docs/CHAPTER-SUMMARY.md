@@ -170,11 +170,11 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **Phase 2 scale-up.** The occluded-door pilot flips the direction sign
-   positive but fails the state guardrail (0.308/0.322 vs 0.8) and does not
-   improve the planner. Lower the pair weight to 0.05–0.10, lower the variance
-   floor to 0.1–0.25, scale the encoder/latent, and add a keypoint-specific
-   state head. Re-run five seeds only after the temporal state R² is ≥0.8.
+2. **Phase 2 state path.** The 142k frame-head tune reached state R² 0.670–0.695;
+   the expanded 340k model was worse (0.610–0.662), and the pre-merge frame head
+   is only 0.24–0.31. The next move is a **separate state encoder with gradient
+   isolation**, not more pair weight or width. Run five seeds only after the
+   temporal state R² is ≥0.8.
 3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.
@@ -191,4 +191,7 @@ The honest short version:
 > In a small world model, good views produced a more world-like latent, better
 > OOD control with support, and less forgetting after a nuisance shift. Absolute
 > OOD state decoding still fails without support; support plus state alignment
-> fixes it. Gating is not retention; the router is the bottleneck.
+> fixes it. Gating is not retention; the router is the bottleneck. The
+> occluded-door Anti-Equivalence test flips the direction sign but never clears
+> the state guardrail; scaling from 142k to 340k made state readback worse. The
+> state path, not the pair weight, is the next frontier.
