@@ -115,14 +115,21 @@ That is the target for the good-view arms.
 
 H1 confirmatory run complete. **H1a and H1c pass; H1b fails as
 pre-registered; overall verdict FAIL.** Good views cut the same-state nuisance
-ratio to **11.4%** of the temporal baseline (95% CI **8.9–14.3%**, **5/5** seeds
-≤0.7) while the state probe is higher in every seed (**0.90–0.95** vs
-**0.69–0.87**). Bad views make nuisance sensitivity **6.7×** worse. The H1b
-failure is a protocol issue: one temporal baseline seed fell below the absolute
-0.75 state floor; the good arm is 0.898 there and higher than temporal in 5/5.
-The mechanism is supported; the full H1 claim is not. See
-[`docs/H1-CONFIRM.md`](docs/H1-CONFIRM.md). Next: H2, planning under a nuisance
-shift.
+ratio to **11.4%** of the temporal baseline (95% CI **8.9–14.3%**, **5/5** seeds)
+while the state probe is higher in every seed (**0.90–0.95** vs **0.69–0.87**).
+Bad views make nuisance sensitivity **6.7×** worse.
+
+H2 is also complete: **FAIL as pre-registered.** Good-view OOD distance is
+**−0.041** versus the **−0.05** target, with **3/5** seeds lower and a CI that
+includes zero. OOD success is **+0.10**, but the random policy (**0.34**) beats
+both planners — the planner, not the representation, is the bottleneck. The
+mechanism result stands; the control link is unconfirmed.
+
+The H1b failure is a protocol issue: one temporal baseline seed fell below the
+absolute 0.75 state floor; the good arm is 0.898 there and higher than temporal
+in 5/5. See [`docs/H1-CONFIRM.md`](docs/H1-CONFIRM.md) and
+[`docs/H2-CONFIRM.md`](docs/H2-CONFIRM.md). Next: diagnose the planner before
+re-testing H2.
 
 ![Same state under two nuisance styles](snapshots/overview.png)
 
@@ -157,6 +164,7 @@ docs/PILOT-VIEWS.md    exploratory good/bad-view pilot
 docs/PREREG.md         pre-registration template for the first experiment
 docs/PREREG-v2.md      confirmatory H1 protocol
 docs/H1-CONFIRM.md     confirmatory H1 result
+docs/H2-CONFIRM.md     confirmatory H2 result
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

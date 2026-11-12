@@ -155,6 +155,11 @@ nuisance shift.
 **Gate 2:** H2 shows an OOD gain with no meaningful ID regression. If H2 fails
 but H1 passes, the result is the invariance–control trade-off; write that.
 
+**Gate 2 status (2026-11-12):** FAIL as pre-registered. Mean OOD difference
+−0.041 (target −0.05), 3/5 seeds lower, CI includes zero; OOD success +0.10, but
+random 0.34 beats both planners. The planner is the bottleneck. Diagnose the
+planner before H2-v2; do not claim control.
+
 ---
 
 ## 6. Phase 2 — the simulated benchmark (weeks 4–5)

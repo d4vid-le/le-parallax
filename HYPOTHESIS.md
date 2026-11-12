@@ -143,6 +143,13 @@ without a meaningful in-distribution regression.
 disappears when the baseline is given the same total compute. Any of these is a
 negative result worth reporting.
 
+**Confirmatory result (2026-11-12).** FAIL as pre-registered: mean OOD
+difference **−0.041** against a **−0.05** target, 3/5 seeds lower, CI
+[−0.113, +0.036]. OOD success is **+0.10** (0.18 vs 0.08), but the random policy
+(**0.34**) beats both planners. Mean ID difference is −0.011, but seed 3
+regresses by +0.110. The planner is the bottleneck; the H1 mechanism stands. See
+[`docs/H2-CONFIRM.md`](docs/H2-CONFIRM.md).
+
 **Why it matters.** This is the translation from representation to control. The
 paper's 42× sample-efficiency claim is about alignment, not planning; H2 tests
 whether it survives the translation.
