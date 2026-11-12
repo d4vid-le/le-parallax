@@ -134,8 +134,16 @@ The planner diagnostic is the important follow-up: a **true-state proportional
 controller** solves the same OOD task **100%**, while CEM succeeds **28%** and
 random **34%**. The learned state head is negative-R² OOD. H2 is confounded by
 the planner and readout, not a verdict on the representation. See
-[`docs/PLANNER-DIAGNOSTIC.md`](docs/PLANNER-DIAGNOSTIC.md). Next: state-feedback
-planner + nuisance-robust readout, then H2-v2.
+[`docs/PLANNER-DIAGNOSTIC.md`](docs/PLANNER-DIAGNOSTIC.md).
+
+H2-v2 replaced CEM with the state-feedback controller and gave both arms the same
+ridge readout trained on augmented latents. Result: **FAIL as pre-registered.**
+Mean OOD distance difference **0.000**, 3/5 seeds lower, control tie at 0.20.
+The readout is the bottleneck: good-view OOD R² **−0.163** vs temporal
+**−1.293**, but both are negative. The good latent is better OOD; the shift is
+outside the encoder's training support. Next: domain-randomize encoder training
+and test on a held-out shift inside the support. See
+[`docs/H2V2-CONFIRM.md`](docs/H2V2-CONFIRM.md).
 
 ![Same state under two nuisance styles](snapshots/overview.png)
 
@@ -172,6 +180,7 @@ docs/PREREG-v2.md      confirmatory H1 protocol
 docs/H1-CONFIRM.md     confirmatory H1 result
 docs/H2-CONFIRM.md     confirmatory H2 result
 docs/PLANNER-DIAGNOSTIC.md  oracle vs CEM vs state-feedback
+docs/H2V2-CONFIRM.md   state-feedback + robust readout result
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

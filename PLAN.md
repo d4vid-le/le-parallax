@@ -164,6 +164,13 @@ planner/readout, not a representation verdict. Replace the planner and readout
 before H2-v2; do not claim control. See
 [`docs/PLANNER-DIAGNOSTIC.md`](docs/PLANNER-DIAGNOSTIC.md).
 
+**H2-v2 status (2026-11-12):** FAIL as pre-registered. State-feedback planner
+and augmented ridge readout; mean OOD difference 0.000, 3/5 seeds, control tie
+0.20. Readout R²: good −0.163 vs temporal −1.293, both negative. The shift is
+outside the encoder's training support. Next: domain-randomize encoder training
+and test on a held-out shift inside the support. See
+[`docs/H2V2-CONFIRM.md`](docs/H2V2-CONFIRM.md).
+
 ---
 
 ## 6. Phase 2 — the simulated benchmark (weeks 4–5)

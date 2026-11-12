@@ -156,6 +156,13 @@ random **34%**; the learned state head is negative-R² OOD. The planner and
 readout, not the representation, are the bottleneck. See
 [`docs/PLANNER-DIAGNOSTIC.md`](docs/PLANNER-DIAGNOSTIC.md).
 
+H2-v2 fixed the planner (state-feedback) and the readout (ridge on augmented
+latents) and still failed: mean OOD difference **0.000**, 3/5 seeds lower, control
+tie at 0.20. The good-view OOD readout R² is **−0.163** vs temporal **−1.293** —
+better, but both negative. The shift is outside the encoder's training support;
+this is a readout-limited negative, not a clean dissociation. See
+[`docs/H2V2-CONFIRM.md`](docs/H2V2-CONFIRM.md).
+
 **Why it matters.** This is the translation from representation to control. The
 paper's 42× sample-efficiency claim is about alignment, not planning; H2 tests
 whether it survives the translation.
