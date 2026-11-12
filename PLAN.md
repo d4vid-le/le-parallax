@@ -277,9 +277,14 @@ are nuisance-specific, not dynamics-immune. See
   reachability classifier on the combined latents passes numerically (AUC
   1.000, abort 1.00), but state-only gets the same and JEPA-only is unstable
   (0.285/0.874/0.290); the pass is the side+goal shortcut, not JEPA
-  irreversibility. The state path is solved; the irreversibility/planner value
-  is not. Next: a belief-state JEPA for the fully occluded case, not another
-  five-seed matrix. Inconclusive, not confirmatory.
+  irreversibility. A same-side alcove counterfactual kills the shortcut:
+  static state/JEPA are at chance (0.497/0.391–0.497), the frozen JEPA+GRU is
+  at chance (0.515), and an end-to-end JEPA+GRU reaches **0.999–1.000**. The
+  belief state solves the controlled memory test; natural-episode and
+  closed-loop control remain open. The state path is solved; the
+  irreversibility/planner value is not. Next: natural-episode belief state and
+  planner integration, not another five-seed matrix. Inconclusive, not
+  confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

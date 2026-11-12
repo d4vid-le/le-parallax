@@ -296,15 +296,20 @@ margin of **+0.018**, and the combined planner is worse than state-only
 (**0.500 vs 0.611**). A discriminative reachability classifier on the combined
 latents passes numerically (AUC 1.000, abort 1.00), but the state-only ablation
 gets the same and the JEPA-only probe is unstable (AUC 0.285/0.874/0.290): the
-pass is the state stream's side+goal shortcut, not JEPA irreversibility. State
-decoupling works; the asymmetry/planner value does not. The trial is suggestive,
-not confirmatory. See
+pass is the state stream's side+goal shortcut, not JEPA irreversibility. A
+same-side alcove counterfactual kills that shortcut: static state/JEPA are at
+chance (0.497/0.391–0.497), the frozen-feature JEPA+GRU is at chance (0.515), and
+an end-to-end JEPA+GRU reaches **0.999–1.000**. The belief state solves the
+controlled memory test; natural-episode and closed-loop control remain open.
+State decoupling works; the asymmetry/planner value does not. The trial is
+suggestive, not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
 [`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),
 [`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md),
-[`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md), and
-[`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md).
+[`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md),
+[`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md), and
+[`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md).
 
 ## 7. H4 — the transfer claim
 

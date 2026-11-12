@@ -252,6 +252,15 @@ abort, and the **JEPA-only** probe is unstable (AUC **0.285 / 0.874 / 0.290**).
 The pass is the state stream's side+goal shortcut, not a JEPA irreversibility
 signal. See [`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md).
 
+**Hypothesis B passes the controlled counterfactual.** A same-side alcove gate
+makes reachability depend on whether the door closed earlier; the paired
+histories share the **same last three frames**. Static state/JEPA are at chance
+(**0.497 / 0.391–0.497**), the frozen-feature JEPA+GRU is at chance (**0.515**),
+and the **end-to-end JEPA+GRU** trained for 40 epochs reaches **AUC 0.999 /
+1.000 / 1.000**. The belief state solves the memory test; it is not yet a
+natural-episode or control result. See
+[`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md).
+
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
 boundary, Anti-Equivalence failure, and the inconclusive Phase 2 pilot. The full
@@ -321,6 +330,7 @@ docs/PHASE2-CONCLUSION.md Phase 2 verdict: guardrail not cleared
 docs/PHASE2-ORACLE.md     oracle ceiling + stop-gradient probe
 docs/DUAL-STREAM-PILOT.md dual-stream state/asymmetry/planner pilot
 docs/HYPOTHESIS-A.md      discriminative reachability probe (confounded)
+docs/HYPOTHESIS-B.md      recurrent belief-state counterfactual (passes)
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

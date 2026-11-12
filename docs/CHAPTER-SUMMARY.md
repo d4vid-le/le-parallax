@@ -74,6 +74,7 @@ The one-line story:
 | **Phase 2 oracle** | 46,830-param CNN, same 3-frame observations | 4-D state R² | oracle **0.935** (x,y **0.978**) vs JEPA **0.671**; adjusted guardrail **0.842**; SG MLP **0.564** vs linear **0.671** | `docs/PHASE2-ORACLE.md` |
 | **Dual-stream pilot** | Frozen 47k state stream + 142k JEPA streams with no state loss; state-dynamics + JEPA shooting planner | state R², Δasym, planner AUC | state **0.936** passes; JEPA direction margin **+0.018**; planner **0.500** vs state-only **0.611** | `docs/DUAL-STREAM-PILOT.md` |
 | **Hypothesis A** | Discriminative reachability classifier on frozen dual-stream latents | AUC, abort, false abort | combined **1.000/1.00/0.03–0.05**, but state-only same and JEPA-only **0.285/0.874/0.290**; pass is the side+goal shortcut | `docs/HYPOTHESIS-A.md` |
+| **Hypothesis B** | Same-side alcove counterfactual; static vs GRU belief | AUC | static state **0.497**, static JEPA **0.391–0.497**, frozen GRU **0.515**, end-to-end JEPA+GRU **0.999–1.000** | `docs/HYPOTHESIS-B.md` |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -175,13 +176,12 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **Hypothesis B — belief state.** The state stream passes at **0.936**, but
-   the JEPA direction margin is **+0.018**, the combined planner is worse than
-   state-only (**0.500 vs 0.611**), and the reachability classifier passes only
-   because of the state stream's side+goal shortcut (JEPA-only AUC **0.285 /
-   0.874 / 0.290**). The next test is a **recurrent/belief-state JEPA** for the
-   fully occluded `t_cross+3/5` case, or a same-side door counterfactual that
-   breaks the shortcut.
+2. **Natural-episode belief state.** The controlled same-side counterfactual is
+   won by an end-to-end JEPA+GRU (**0.999–1.000**) while static state/JEPA are at
+   chance (0.497/0.391–0.497) and the frozen-feature GRU is at chance (0.515).
+   Next: train and evaluate the belief state on **natural episodes**, integrate
+   it into the planner, and test the fully occluded `t_cross+3/5` case. This is
+   still a controlled-memory result, not a control result.
 3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.
@@ -204,5 +204,7 @@ The honest short version:
 > dual stream solves the state path (0.936) but not the asymmetry/planner value
 > (+0.018 margin; combined planner 0.500 vs state-only 0.611). The reachability
 > classifier passes only because of the state stream's side+goal shortcut;
-> JEPA-only is unstable. The state path is no longer the frontier; the
-> irreversibility signal is — and it likely needs a belief state.
+> JEPA-only is unstable. A same-side counterfactual kills the shortcut, and an
+> end-to-end JEPA+GRU belief state solves it (0.999–1.000) where static
+> state/JEPA are at chance. The memory mechanism works; natural-episode and
+> closed-loop control remain the frontier.

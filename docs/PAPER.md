@@ -411,6 +411,7 @@ the isolation.
 | Phase 2 capacity | 340k params, 60 epochs: state R² 0.610–0.662, direction margin −0.009, bounded std 0.882; frame probe R² negative, frame head 0.24–0.31 | More capacity did not fix state; the merged latent/observation is the bottleneck; the 5-seed matrix is not justified |
 | Dual-stream | State stream **0.936** passes; JEPA no-state-loss direction margin **+0.018**; planner **0.500** vs state-only **0.611** | State decoupling works; the asymmetry/planner value does not; the next test is a JEPA reachability classifier, not another matrix |
 | Hypothesis A | Combined classifier AUC **1.000**, abort **1.00**; state-only same; JEPA-only **0.285 / 0.874 / 0.290** | The pass is the state stream's side+goal shortcut, not JEPA irreversibility; the test is confounded, next is a belief-state JEPA |
+| Hypothesis B | Static controls **0.497 / 0.391–0.497**; frozen JEPA+GRU **0.515**; end-to-end JEPA+GRU **0.999–1.000** | The belief state solves the controlled counterfactual, but only with end-to-end training; this is a memory result, not control |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -525,6 +526,16 @@ irreversibility signal. Hypothesis A is **confounded**; the next test is a
 belief-state JEPA or a task that breaks the side+goal shortcut. See
 [`HYPOTHESIS-A.md`](HYPOTHESIS-A.md).
 
+**Hypothesis B** builds that task. A hidden right-side alcove gate makes a
+right/right goal reachable only if the door stayed open; paired histories share
+the **same last three frames**, so static encoders are at chance. The state and
+static JEPA baselines score **0.497** and **0.391–0.497**; a GRU over frozen
+JEPA features is also at chance (**0.515**). Fine-tuning the JEPA frame encoder
+with a GRU end-to-end for 40 epochs reaches **AUC 0.999 / 1.000 / 1.000**,
+clearing the 0.750 trigger. The belief state solves the controlled memory test;
+this is not yet a natural-episode or closed-loop control result. See
+[`HYPOTHESIS-B.md`](HYPOTHESIS-B.md).
+
 ### 6.4 Why the effect appears in control only after domain randomization
 
 The first control tests failed because the encoder had never seen the shifted
@@ -579,7 +590,10 @@ needs a retention signal and a reliable router; a soft gate leaks, and a hard
 gate with 10% replay routes too much of the original domain. The occluded-door
 Anti-Equivalence test flips the direction sign but never clears the state
 guardrail; scaling the model from 142k to 340k parameters made state readback
-worse. The state path, not the pair weight, is the next frontier.
+worse. The state path, not the pair weight, is the next frontier. A recurrent
+belief state solves the controlled same-side counterfactual (**AUC 0.999–1.000**)
+but only with end-to-end training; frozen JEPA features are at chance (0.515).
+The memory mechanism works; natural-episode and closed-loop control remain open.
 
 Positive-pair geometry is a conditional lever for continual world models:
 **support first, then alignment; gating is not retention.** It is not a universal
@@ -609,6 +623,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Phase 2 oracle | `scripts/oracle_state_cnn.py`, `scripts/state_probe_mlp.py` | `docs/PHASE2-ORACLE.md` |
 | Dual-stream pilot | `scripts/dual_stream_planner.py`, `scripts/asymmetry_collision.py` | `docs/DUAL-STREAM-PILOT.md` |
 | Hypothesis A | `scripts/reachability_classifier.py` | `docs/HYPOTHESIS-A.md` |
+| Hypothesis B | `scripts/counterfactual_belief.py`, `scripts/counterfactual_gru.py` | `docs/HYPOTHESIS-B.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -666,6 +681,8 @@ Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 | Dual-stream JEPA | 142k, no state loss, 40 epochs, `λ_pair=0.10`, cosine |
 | Dual-stream planner | 64 shots, horizon 6, state + α·JEPA score, α=1.0 |
 | Reachability classifier | 2-layer MLP, 50 epochs, 3 seeds, τ = p17 validation reachable |
+| Belief counterfactual | paired open/closed, identical last 3 frames, 800/400 sequences |
+| Belief GRU | JEPA frame encoder + GRU 64, 40 epochs, batch 8, 3 seeds |
 
 ## References
 
