@@ -271,8 +271,12 @@ are nuisance-specific, not dynamics-immune. See
   started. The oracle CNN reaches **0.935** 4D state R² on the same observations;
   the oracle-relative guardrail is **0.842**, and the JEPA's 0.671 is a real
   representation gap. The stop-gradient MLP head is worse than linear (0.564 vs
-  0.671). Next: a separate state encoder with gradient isolation. Inconclusive,
-  not confirmatory.
+  0.671). A dual-stream pilot solves the state path (frozen 47k stream
+  **0.936**) but the JEPA no-state-loss direction margin is **+0.018**, and the
+  combined planner is **0.500** vs state-only **0.611**. The state path is
+  solved; the irreversibility/planner value is not. Next: a JEPA reachability
+  classifier or a stronger irreversibility objective, not another five-seed
+  matrix. Inconclusive, not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

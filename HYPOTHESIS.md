@@ -289,12 +289,17 @@ is right, but capacity is not the state bottleneck, and the 0.80 guardrail and
 +0.10 margin are still missed. The oracle check shows the observation supports
 **0.935** 4D state R² (0.978 x,y) with a 46,830-parameter CNN; the oracle-relative
 guardrail is **0.842**, and the JEPA's 0.671 is a real representation gap. A
-stop-gradient MLP head does not recover more state (0.564 vs 0.671 linear). The
-trial is suggestive, not confirmatory. See
+stop-gradient MLP head does not recover more state (0.564 vs 0.671 linear). A
+dual-stream pilot solves the state path with a frozen 47k state stream
+(**0.936**), but the JEPA streams trained with no state loss have a direction
+margin of **+0.018**, and the combined planner is worse than state-only
+(**0.500 vs 0.611**). State decoupling works; the asymmetry/planner value does
+not. The trial is suggestive, not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
-[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md), and
-[`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md).
+[`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),
+[`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md), and
+[`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md).
 
 ## 7. H4 — the transfer claim
 

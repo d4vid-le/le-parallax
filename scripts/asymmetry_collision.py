@@ -246,8 +246,11 @@ def train_arm(model, temporal_samples, pairs, arm: str, epochs: int,
               pair_weight: float = 0.25,
               state_weight: float = 0.25, warmup: int = 5,
               latent_dim: int = 64, cosine: bool = False,
+              lambda_base_state: float = 0.5,
               verbose: bool = True):
-    base_loss = make_loss(SIGReg(dim=latent_dim), 0.09)
+    base_loss = make_loss(
+        SIGReg(dim=latent_dim), 0.09, lambda_state=lambda_base_state
+    )
     rng = np.random.default_rng(seed)
     pw = [0.0]
     sw = [0.0]
@@ -469,6 +472,7 @@ def main():
     ap.add_argument("--latent-dim", type=int, default=64)
     ap.add_argument("--width", type=float, default=1.0)
     ap.add_argument("--cosine", action="store_true")
+    ap.add_argument("--no-state-loss", action="store_true")
     ap.add_argument("--eval-only", action="store_true")
     ap.add_argument("--arms", nargs="+", default=PHASE2_ARMS)
     ap.add_argument("--out", default="runs/asymmetry")
@@ -555,10 +559,15 @@ def main():
                     lr=args.lr, seed=seed, lambda_vol=vol,
                     lambda_var=args.lambda_var,
                     pair_weight=args.pair_weight,
-                    state_weight=args.state_weight,
+                    state_weight=(
+                        0.0 if args.no_state_loss else args.state_weight
+                    ),
                     warmup=args.warmup,
                     latent_dim=args.latent_dim,
                     cosine=args.cosine,
+                    lambda_base_state=(
+                        0.0 if args.no_state_loss else 0.5
+                    ),
                 )
             metrics = evaluate(
                 model, train_irr, test_irr, train_rev, test_rev,

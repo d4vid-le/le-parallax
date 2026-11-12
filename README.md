@@ -238,6 +238,13 @@ representation gap. A stop-gradient MLP probe does not recover more state
 [`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md), and
 [`docs/PHASE2-CONCLUSION.md`](docs/PHASE2-CONCLUSION.md).
 
+**Dual stream solves state, not asymmetry.** The frozen 47k state stream passes
+the guardrail at **R² 0.936**. The JEPA streams trained with no state loss have
+a direction margin of **+0.018**, and the combined planner is **worse** than
+state-only (AUC **0.500 vs 0.611**). The state bottleneck is gone; the
+irreversibility/planner value is not. See
+[`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md).
+
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
 boundary, Anti-Equivalence failure, and the inconclusive Phase 2 pilot. The full
@@ -305,6 +312,7 @@ docs/PHASE2-TUNING.md     lower pair pressure + pre-merge state head
 docs/PHASE2-CAPACITY.md   expanded 340k model / 60-epoch sweep
 docs/PHASE2-CONCLUSION.md Phase 2 verdict: guardrail not cleared
 docs/PHASE2-ORACLE.md     oracle ceiling + stop-gradient probe
+docs/DUAL-STREAM-PILOT.md dual-stream state/asymmetry/planner pilot
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

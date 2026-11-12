@@ -409,6 +409,7 @@ the isolation.
 | Phase 2 pilot | Occluded door flips the direction positive (+0.146 vs −0.055), but state R² is 0.308 vs the 0.8 guardrail; planner AUC 0.722 vs 0.750 | Partial observation is the right manipulation, but the pair loss/capacity is the bottleneck; not confirmatory |
 | Phase 2 tuning | Pre-merge state head + `λ_pair=0.08`: state R² 0.670–0.695, direction +0.080 vs −0.019 (margin +0.099); still <0.8, planner flat | The decoupling fix works; the model is at its capacity ceiling; not confirmatory |
 | Phase 2 capacity | 340k params, 60 epochs: state R² 0.610–0.662, direction margin −0.009, bounded std 0.882; frame probe R² negative, frame head 0.24–0.31 | More capacity did not fix state; the merged latent/observation is the bottleneck; the 5-seed matrix is not justified |
+| Dual-stream | State stream **0.936** passes; JEPA no-state-loss direction margin **+0.018**; planner **0.500** vs state-only **0.611** | State decoupling works; the asymmetry/planner value does not; the next test is a JEPA reachability classifier, not another matrix |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -507,6 +508,15 @@ bottleneck. The next move is a separate state encoder. See
 [`PHASE2-CAPACITY.md`](PHASE2-CAPACITY.md), and
 [`PHASE2-ORACLE.md`](PHASE2-ORACLE.md).
 
+**Dual stream** separates the state path from the world-model path. The frozen
+47k state stream passes the oracle-relative guardrail at **0.936**, while the
+JEPA streams trained with **no state loss** do not form a stronger directional
+latent: `asym_clean` Δasym **+0.014** vs `sym_head` **−0.003**, a margin of
+**+0.018**. The combined planner is worse than state-only (**AUC 0.500 vs
+0.611**). The state bottleneck is solved; the irreversibility signal is not yet
+usable by this planner. See
+[`DUAL-STREAM-PILOT.md`](DUAL-STREAM-PILOT.md).
+
 ### 6.4 Why the effect appears in control only after domain randomization
 
 The first control tests failed because the encoder had never seen the shifted
@@ -589,6 +599,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Phase 2 tuning | `scripts/asymmetry_collision.py`, `scripts/state_probe_nonlinear.py` | `docs/PHASE2-TUNING.md` |
 | Phase 2 capacity | `scripts/asymmetry_collision.py` | `docs/PHASE2-CAPACITY.md` |
 | Phase 2 oracle | `scripts/oracle_state_cnn.py`, `scripts/state_probe_mlp.py` | `docs/PHASE2-ORACLE.md` |
+| Dual-stream pilot | `scripts/dual_stream_planner.py`, `scripts/asymmetry_collision.py` | `docs/DUAL-STREAM-PILOT.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -642,6 +653,9 @@ Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 | Phase 2 capacity | 340,784 params, latent 128, width 1.25; 60 epochs cosine; `λ_pair=0.10`, `λ_var=0.10` |
 | Oracle CNN | 46,830 params; conv 24/40/40; 3-frame history; 100 epochs, 3 seeds |
 | SG MLP probe | 64→256→256→4; frozen encoder; 3 probe seeds, early stopping |
+| Dual-stream state | 46,830-param oracle CNN, frozen for the planner |
+| Dual-stream JEPA | 142k, no state loss, 40 epochs, `λ_pair=0.10`, cosine |
+| Dual-stream planner | 64 shots, horizon 6, state + α·JEPA score, α=1.0 |
 
 ## References
 

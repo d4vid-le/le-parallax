@@ -77,7 +77,8 @@ def r2(pred, target):
 
 
 def train_one(train_obs, train_state, test_obs, test_state, seed: int,
-              epochs: int = 100, batch: int = 32, lr: float = 1e-3):
+              epochs: int = 100, batch: int = 32, lr: float = 1e-3,
+              save_path=None):
     mx.random.seed(seed)
     model = OracleCNN()
     rng = np.random.default_rng(seed)
@@ -120,6 +121,9 @@ def train_one(train_obs, train_state, test_obs, test_state, seed: int,
     p4 = np.array(p4)
     r2_2 = r2(p2, test_state[:, :2])
     r2_4 = r2(p4, test_state)
+    if save_path is not None:
+        pathlib.Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        model.save_weights(str(save_path))
     n_params = sum(
         p.size for _, p in __import__("mlx.utils", fromlist=["tree_flatten"]).tree_flatten(
             model.parameters()
@@ -143,6 +147,7 @@ def main():
     ap.add_argument("--train-episodes", type=int, default=40)
     ap.add_argument("--test-episodes", type=int, default=20)
     ap.add_argument("--epochs", type=int, default=100)
+    ap.add_argument("--save", action="store_true")
     ap.add_argument("--out", default="runs/oracle-state")
     args = ap.parse_args()
 
@@ -172,6 +177,10 @@ def main():
         row = train_one(
             train_obs, train_state, test_obs, test_state,
             seed=seed, epochs=args.epochs,
+            save_path=(
+                out / f"state_stream_s{seed}.safetensors"
+                if args.save else None
+            ),
         )
         rows.append(row)
         print(
