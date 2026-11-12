@@ -101,9 +101,10 @@ in [`PLAN.md`](PLAN.md). The formal hypotheses and their falsifiers are in
 - **Not a language model.** There is no text encoder in the first experiment.
   Language may enter later as a second modality; it is not the initial variable.
 - **Not a full continual-learning algorithm.** Good views are one lever on
-  representation stability. Adaptation still needs a mechanism; if the effect is
-  real, it composes with Le-Gates or another adapter.
-- **Not a benchmark paper.** One model family, a few controlled shifts, three
+  representation stability. Adaptation still needs a mechanism; the Le-Gates
+  prototype shows that a gate is not retention, and the router is the
+  bottleneck.
+- **Not a benchmark paper.** One model family, a few controlled shifts, five
   seeds. The goal is a clean mechanism result, not a leaderboard.
 
 ---
@@ -180,8 +181,35 @@ views have **no A-retention advantage**: good is worse by **0.00626** MSE
 nuisance invariance, not dynamics immunity. See
 [`docs/H3B-CONFIRM.md`](docs/H3B-CONFIRM.md).
 
-**The chapter in four results:** mechanism (H1), control (H2-v4), retention
-(H3), boundary (H3b). The full synthesis, including the failed endpoints and the
+**The collision suite changed the story from unconditional to conditional.**
+Five-seed OOD diagnostic: under a held-out nuisance shift, good-view state R² is
+**−0.049** vs temporal **−0.840**. Absolute OOD decoding still fails — the
+invariance is distribution-specific — but good degrades far less than temporal.
+A seed-0 pilot had suggested the opposite; the five-seed run reversed it. See
+[`docs/COLLISION-1B.md`](docs/COLLISION-1B.md).
+
+**Support plus alignment fixes it.** CSA (40 normal + 40 shifted episodes, plus
+cross-domain counterfactual state-head alignment) reaches shifted R² **0.828**
+vs the mix-ft control **0.728** (**+0.101**, 95% CI +0.050 to +0.180, 5/5), with
+normal R² essentially unchanged (0.927 vs 0.932). CNA-v1, which aligned without
+support, failed (normal 0.929 → 0.739). See
+[`docs/COLLISION-1B.md`](docs/COLLISION-1B.md).
+
+**Le-Gates is a router problem, not a gate problem.** On the dynamics boundary,
+a frozen-encoder residual adapter forgets A **+146%** with no anchor; a 10% A
+replay anchor plus a soft error gate reduces that to **+104%** while routing
+(AUC 0.667); a hard gate reduces it to **+26%** but routes **18.5%** of A. Soft
+gates leak, hard gates isolate only where the router is correct, and the router
+is the bottleneck. See [`docs/COLLISION-3.md`](docs/COLLISION-3.md).
+
+**Seed 4 is allocation, not rank collapse.** Its good latent has lower effective
+rank than Seed 1 in all good conditions, but A rank is higher than temporal and
+Seed 1 has lower B rank with better B R². Rank alone does not predict R². See
+[`docs/COLLISION-1-2.md`](docs/COLLISION-1-2.md).
+
+**The chapter in seven results:** mechanism (H1), control (H2-v4), retention
+(H3), dynamics boundary (H3b), OOD characterization, CSA fix, and Le-Gates
+router boundary. The full synthesis, including the failed endpoints and the
 caveats, is in [`docs/CHAPTER-SUMMARY.md`](docs/CHAPTER-SUMMARY.md).
 
 ![Same state under two nuisance styles](snapshots/overview.png)
@@ -225,13 +253,24 @@ docs/PREREG-H2v3.md   domain-randomized encoder protocol
 docs/H2V3-CONFIRM.md  domain-randomized result
 docs/PREREG-H2v4.md   success-primary replication protocol
 docs/H2V4-CONFIRM.md  success-primary result
+docs/H3-CONFIRM.md    retention after nuisance shift
+docs/H3B-CONFIRM.md   dynamics-shift boundary
+docs/PAPER.md         research note draft
+docs/CHAPTER-SUMMARY.md  conditional synthesis
+docs/PREREG-COLLISION.md  familiar-swap and capacity protocols
+docs/COLLISION-1-2.md     collision 1-2 results
+docs/PREREG-COLLISION-2.md  OOD, CNA, and Le-Gates protocols
+docs/COLLISION-1B.md      OOD diagnostic, CNA, and CSA results
+docs/PREREG-CSA.md        counterfactual state alignment protocol
+docs/COLLISION-3.md       Le-Gates v1/v2/v3 results
+docs/PREREG-LEGATES-V2.md soft-gate + anchor protocol
+docs/PREREG-LEGATES-V3.md hard-gate protocol
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 
-Code will be added after the first pre-registration. The stack is deliberately
-undecided until Phase 0; the likely path is MLX for the model and training, with
-a small NumPy simulator for the controlled world, and PyTorch only if a
-stable-worldmodel environment is needed.
+The code is in `leparallax/` (world, data, model, training, probes, planner) and
+`scripts/` (confirmatory runs and collision suite). The stack is MLX for the
+model and training, with a small NumPy simulator for the controlled world.
 
 ---
 

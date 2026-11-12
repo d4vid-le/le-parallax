@@ -1,4 +1,6 @@
-# LeParallax: Positive-Pair Geometry Improves Control and Retention in Action-Conditioned World Models
+# LeParallax: What Good Views Buy, and Where They Break
+
+### Positive-pair geometry in an action-conditioned world model
 
 **Research note / preprint draft.** Not peer reviewed.
 Code, pre-registrations, and reproduction scripts:
@@ -35,11 +37,21 @@ with controllable state, nuisance, and dynamics. Across five seeds:
    advantage; they are slightly worse on the original dynamics while both arms
    adapt.
 
-The effect is specific, not a generic “more invariance is better” claim. It also
-comes with real failures: one pre-registered state-floor endpoint failed on a
-baseline seed, CEM was a broken planner before the control test, a distance
-endpoint was near-saturated, and one seed shows a stability–plasticity trade-off.
-We report all of them.
+The effect is conditional, and the collision suite says where. Under a held-out
+nuisance shift with no support, the good-view latent is still not linearly
+state-decodable — mean shifted R² **−0.05** — though it degrades far less than
+temporal (**−0.84**). A counterfactual state alignment (CSA) pipeline with
+mixed-domain support restores shifted R² to **0.83**, beating a domain-exposure
+control by **+0.10** with no normal loss. On a dynamics shift, a frozen-encoder
+Le-Gates adapter forgets the original dynamics: soft gates forget **+104% to
++146%**, and a hard error gate cuts that to **+26%** but still routes **18.5%**
+of the original domain. The gate is the policy; isolation is the guarantee, and
+the router is the bottleneck.
+
+The failures are part of the result: one pre-registered state-floor endpoint
+failed on a baseline seed, CEM was a broken planner before the control test, a
+one-seed OOD pilot reversed under five seeds, and the Seed 4 capacity anomaly is
+domain-specific allocation rather than rank collapse. We report all of them.
 
 ---
 
@@ -64,16 +76,21 @@ hurt it, or do nothing.
 This note answers that question in a controlled setting. We keep the model small
 (142,564 parameters), the world synthetic (a 2D puck with controllable nuisance
 and dynamics), and the protocol pre-registered. The contribution is not a new
-architecture. It is a set of measurements that separate three claims:
+architecture. It is a set of measurements that separate five claims:
 
 - **Mechanism:** do good views make the latent more state-like?
 - **Control:** does that advantage survive into planning/control?
 - **Retention:** does it reduce forgetting after a domain shift?
 - **Boundary:** is the advantage specific to nuisance, or does it also cover
   dynamics?
+- **Collision:** does the invariance survive held-out and out-of-distribution
+  nuisance, and can an adapter handle the dynamics boundary?
 
-The answer is yes, yes, yes, and no. The boundary is the part that makes the
-first three credible.
+The answer is yes, yes, yes, no, and only conditionally. The boundary and the
+collisions are what make the first three credible. A good-view latent is not a
+generic invariance fix: it is an in-distribution state geometry that degrades
+gracefully and needs support plus alignment before it is usable out of
+distribution.
 
 ---
 
@@ -100,9 +117,12 @@ for a new domain. In earlier experiments the soft single gate reduced
 old-domain drift from +1015% (naive fine-tuning) to +169%, not zero; masked
 growable slots reached 0.0025 → 0.0026; hard 0/1 gates with a frozen base gave
 zero non-routed forgetting by construction, with a Σ≤1 composition constraint.
-Le-Gates is a dynamics-adaptation mechanism. It is not evaluated in this paper;
-H3b is the evidence that good views and dynamics adaptation are different
-problems.
+Le-Gates is a dynamics-adaptation mechanism. We evaluate a minimal version of it
+on the H3b boundary (§4.7): a frozen-encoder residual adapter with global,
+input-conditioned, and error-conditioned gates. The result is consistent with
+the earlier evidence — soft gates leak, hard gates isolate only where the router
+is correct, and the router is the bottleneck. H3b remains the evidence that good
+views and dynamics adaptation are different problems.
 
 ---
 
@@ -245,7 +265,10 @@ temporal fine-tuning for both arms. A-state R² after adaptation:
   gaining the most on A (+0.347).
 
 This is representation-level retention, not control retention. Forgetting is
-reduced, not eliminated.
+reduced, not eliminated. It is also an **in-distribution** result: §4.5 shows
+that the good-view latent still fails absolute state decoding under an unseen
+shift. H3's advantage is about adapting to the shift, not zero-shot
+generalization.
 
 ### 4.4 Boundary: no dynamics protection
 
@@ -265,7 +288,100 @@ Frozen H1 encoders adapted to shifted dynamics `[0.65, 0.32]` with the same
 - B post difference **−0.00042** (essentially tied); both arms adapt.
 
 Good views buy nuisance invariance, not dynamics immunity. The mechanism is
-specific.
+specific. §4.7 tests whether a Le-Gates adapter can handle the dynamics
+boundary; it can adapt B, but retaining A requires a reliable router.
+
+### 4.5 Adversarial nuisance: the invariance is distribution-specific
+
+H1 trained on normal nuisance. We re-rendered held-out states under a held-out
+nuisance, a shifted nuisance distribution, and four corner combinations of the
+shifted ranges. Probe trained on normal latents; no adaptation.
+
+| arm | normal | held-out swap | shifted | extreme |
+|---|---:|---:|---:|---:|
+| temporal | 0.815 | 0.806 | **−0.840** | **−0.888** |
+| good | 0.932 | 0.933 | **−0.049** | **−0.053** |
+
+Paired differences (good − temporal), five seeds:
+
+- normal **+0.117** (95% CI +0.078 to +0.170)
+- shifted **+0.791** (95% CI +0.224 to +1.165)
+- extreme **+0.836** (95% CI +0.509 to +1.029)
+
+Two things are true at once. **Absolute OOD state decoding fails**: the
+good-view mean shifted R² is −0.049, so the invariance does not transfer as a
+usable latent. **Relative degradation favors good**: it is +0.79 R² better than
+temporal under the shift and +0.84 under the extreme corners.
+
+This also corrects a one-seed pilot. Seed 0 made good look *worse* than temporal
+out of distribution (good −0.877 vs temporal −0.592). The five-seed diagnostic
+reverses that. The pilot is reported in
+[`COLLISION-1B.md`](COLLISION-1B.md); it is exactly why the collision suite
+uses five seeds.
+
+The pre-registered 1b-d bet was partially falsified: the absolute drop is
+≥0.10 (0.981), but good is **+0.791** above temporal, not within 0.05. The
+invariance is distribution-specific in absolute terms, and relatively robust.
+
+### 4.6 Counterfactual State Alignment: support first, then alignment
+
+The first pipeline, CNA-v1, added counterfactual views but no shifted temporal
+support and used a strong latent-MSE alignment. It failed on seed 0: normal R²
+fell from 0.929 to **0.739**, and shifted R² was 0.282 vs **0.781** for an
+ordinary mixed-domain control. Latent alignment without support collapses
+state-relevant dimensions.
+
+CSA changes both ingredients: the same 40 normal + 40 shifted episodes as the
+`mix-ft` control, plus cross-domain counterfactual pairs whose **state-head**
+predictions must agree (weight 0.5), with only a weak latent term (weight 0.1).
+
+| stage | normal | held-out swap | shifted | extreme |
+|---|---:|---:|---:|---:|
+| frozen good | 0.932 | 0.933 | −0.049 | −0.053 |
+| mix-ft | 0.924 | 0.926 | 0.728 | 0.328 |
+| **CSA** | **0.927** | **0.927** | **0.828** | **0.471** |
+
+- **CSA − mix-ft shifted: +0.101** (95% CI +0.050 to +0.180), 5/5 seeds.
+- **frozen − CSA normal: +0.005** (95% CI −0.000 to +0.011) — normal retained.
+- **CSA − mix-ft extreme: +0.143** (95% CI +0.077 to +0.209).
+
+Per-seed shifted R²: 0.861, 0.865, 0.871, 0.850, 0.694 vs mix-ft 0.781, 0.830,
+0.813, 0.777, 0.438. CSA wins on every seed; the largest gain is Seed 4, the
+seed with the worst domain-exposure control.
+
+**Support is necessary; alignment is not sufficient without it.** Once support
+is present, state-level alignment adds a real OOD gain without a normal cost.
+
+### 4.7 Le-Gates on the dynamics boundary: the router is the bottleneck
+
+H3b showed good views do not protect dynamics. We froze the good-view encoder
+and base predictor and trained only a 33k–35k residual adapter on B. Three
+routers, five seeds each:
+
+| version | A rel forget | B rel gain | pass seeds | error-gate AUC |
+|---|---:|---:|---:|---:|
+| full fine-tune | +0.865 | +0.723 | 0/5 | — |
+| soft, no anchor | +1.459 | +0.544 | 0/5 | 0.612 |
+| soft + 10% A anchor | +1.041 | +0.506 | 0/5 | 0.667 |
+| hard + 10% A anchor | **+0.259** | +0.415 | 0/5 | — |
+
+- **No anchor, no closure.** Trained only on B, every gate forgets A (+146% to
+  +155%). The gate never sees an A example, so it has no signal to close.
+- **The soft gate leaks even when it routes.** A 10% replay anchor plus
+  distillation cuts error-gate forgetting to +104% and raises routing AUC to
+  0.667, but the sigmoid still applies a nonzero residual on A.
+- **The hard gate isolates exactly where it routes — and routes too much A.**
+  With `τ` at the 95th percentile of A-anchor errors, A forgetting falls to
+  **+26%**, but **18.5%** of A transitions open and only **65.5%** of B
+  transitions route. The A/B error distributions overlap; a scalar threshold
+  cannot separate them cleanly with 10% replay.
+
+The ordering is the result: **the gate is the policy; isolation is the
+guarantee; the router is the bottleneck.** A soft scalar gate is bounded
+adaptation, not a no-forgetting mechanism. Hard isolation works only where the
+router is correct, and with 10% A replay it is not correct enough. This is
+consistent with the earlier Le-Gates evidence that masks, not gate scalars, do
+the isolation.
 
 ---
 
@@ -279,6 +395,14 @@ specific.
 | H2-v3 | Distance −0.026 vs −0.05 target (fail), success +28 points | The distance endpoint was near-saturated; success was the right control metric |
 | H3 seed 4 | Good B post 0.626 vs temporal 0.789 while A gained +0.347 | A real stability–plasticity trade-off, not a free lunch |
 | H3b | Good A predictor MSE worse by 0.00626 in 5/5 | Nuisance invariance is not dynamics adaptation |
+| Collision 1 | Good-view swap drop +0.001, not ≥0.10 | The swap used training nuisance identities; familiar-nuisance test, not OOD |
+| Collision 1b pilot | Seed 0 made good look worse than temporal OOD | A one-seed collision reversed under five seeds; report the reversal |
+| Collision 1b full | Good shifted R² −0.049 (absolute OOD failure) | Invariance is distribution-specific; relative degradation still favors good |
+| CNA-v1 | Normal R² 0.929 → 0.739; lost to mix-ft by 0.498 shifted | Latent alignment without support collapses state-relevant dimensions |
+| Collision 2 | Seed 4 rank bet confirmed, but no global collapse | Domain-specific capacity allocation, not a bottleneck; rank alone does not predict R² |
+| Le-Gates v1 | All gates forget A (+146% to +155%) | A gate trained only on B has no signal to close on A |
+| Le-Gates v2 | Soft error gate routes (AUC 0.667) but forgets +104% | Routing is not retention; the soft sigmoid leaks |
+| Le-Gates v3 | Hard gate forgets +26%, routes 18.5% of A | The router, not the gate scalar, is the bottleneck |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -295,26 +419,49 @@ It is a representation regularizer, not a new planner. In this world it reduced
 nuisance sensitivity by ~89% relative, improved OOD control by 23 points, and
 reduced nuisance-shift forgetting by ~81%.
 
-### 6.2 Good views and Le-Gates are complementary
+The recipe has a precondition: **support**. Without shifted-domain examples, the
+good-view latent is still not linearly state-decodable under a held-out
+nuisance (mean shifted R² −0.05), even though it degrades less than temporal
+(−0.84). Support alone (mix-ft) recovers 0.73; adding counterfactual state
+alignment recovers 0.83 and beats the support-only control by +0.10. The
+practical order is: support first, then align states, and only then expect the
+representation to be useful out of distribution.
+
+### 6.2 Good views and Le-Gates are complementary — and gating is not retention
 
 Good views address **nuisance**: what should be invariant. Le-Gates addresses
 **dynamics**: what should change and be learned. H3b is the empirical case for
 the division of labor: good views do not protect against a dynamics shift, and
 adaptation is still required.
 
-The Le-Gates evidence remains bounded: the soft single gate reduced drift from
-+1015% to +169% (not zero); masked growable slots reached 0.0025 → 0.0026; hard
-gates with a frozen base gave zero non-routed forgetting by construction, with a
-Σ≤1 composition constraint. Effective as bounded adaptation/isolation, not as a
-no-forgetting guarantee. We did not evaluate Le-Gates here.
+The dynamics-boundary prototype sharpens the Le-Gates claim. A frozen-encoder
+adapter trained only on B forgets A (+146% to +155%), because the gate never
+sees an A example and has no signal to close. A 10% A replay anchor plus
+distillation reduces that to +104%, and the soft error gate learns to route
+(AUC 0.667), but the sigmoid still leaks. A hard gate calibrated on the A
+anchor cuts forgetting to +26%, but routes 18.5% of A and only 65.5% of B: the
+A/B error distributions overlap, and the router cannot separate them cleanly at
+this replay budget.
+
+This is the same lesson as the earlier Le-Gates work, now on the dynamics
+boundary: the soft single gate reduced drift from +1015% to +169% (not zero);
+masked growable slots reached 0.0025 → 0.0026; hard gates with a frozen base
+gave zero **non-routed** forgetting by construction. Effective as bounded
+adaptation/isolation, not as a no-forgetting guarantee. **The gate is the
+policy; isolation is the guarantee; the router is the bottleneck.** A reliable
+router (more replay, a learned detector with a false-open penalty, or structural
+masks) is the next requirement, not a better gate scalar.
 
 ### 6.3 Why the effect appears in control only after domain randomization
 
 The first control tests failed because the encoder had never seen the shifted
 nuisance; no readout could fix that. Once both arms had support, the good-view
-advantage appeared. This is a general caution: representation invariance is not
-useful under a distribution the encoder has never seen. Support is a prerequisite,
-not a detail.
+advantage appeared. The adversarial diagnostic makes the point quantitative:
+without support, good-view shifted R² is −0.049 and temporal is −0.840. Good is
+relatively robust, but neither latent is usable. Support is a prerequisite, not
+a detail. CSA shows that support plus state-level alignment is enough to make
+the representation usable (0.828 shifted), and that alignment without support is
+not (CNA-v1: normal R² 0.739, shifted 0.282).
 
 ### 6.4 Limitations
 
@@ -322,8 +469,20 @@ not a detail.
 - State readout and two-step loss are auxiliary and shared; this is not a pure
   JEPA ablation.
 - H3 is representation-level, not control retention.
-- H3b uses predictor MSE, not control.
-- One dynamics-shift size; one nuisance-shift distribution.
+- H3b and the Le-Gates prototype use predictor MSE, not control.
+- The adversarial diagnostic uses one shifted nuisance distribution and four
+  corner combinations; it is not a general OOD nuisance law. The absolute
+  good-view shifted R² is still near zero; “relatively robust” is not “usable.”
+- CSA is representation-level, not control retention; it uses a 40/40 mixed
+  budget and a state-head alignment term that was not ablated separately.
+- The Le-Gates prototype uses one dynamics shift and a 10% A replay anchor; the
+  hard gate's threshold is calibrated, not learned. More replay or a learned
+  detector may change the router result.
+- The capacity autopsy is a single seed pair (1 vs 4); it rules out a simple
+  global rank-collapse story but does not establish the allocation mechanism
+  causally.
+- The familiar-nuisance swap used training nuisance identities; it is not the
+  OOD test.
 - No real-world data, language, or cross-modal transfer.
 - H1b and H2-v3 are literal failures and remain so.
 
@@ -334,9 +493,16 @@ not a detail.
 Same-state good views produce a more world-like latent in an action-conditioned
 world model. That latent is more robust to nuisance in control and forgets less
 after a nuisance shift, while providing no protection against a dynamics shift.
-The effect is large enough to matter in a small simulated world and specific
-enough to be falsifiable. Positive-pair geometry is a cheap lever for continual
-world models — not a universal invariance fix.
+The effect is conditional: without support, absolute OOD state decoding still
+fails, even though good views degrade far less than temporal. Support plus
+counterfactual state alignment restores usable OOD geometry and beats a
+domain-exposure control. On the dynamics boundary, a frozen-encoder adapter
+needs a retention signal and a reliable router; a soft gate leaks, and a hard
+gate with 10% replay routes too much of the original domain.
+
+Positive-pair geometry is a conditional lever for continual world models:
+**support first, then alignment; gating is not retention.** It is not a universal
+invariance fix, and the collisions that break it are part of the result.
 
 ---
 
@@ -348,6 +514,13 @@ world models — not a universal invariance fix.
 | H2-v4 control | `scripts/h2v4_success.py` | `docs/PREREG-H2v4.md` |
 | H3 retention | `scripts/h3_forgetting.py` | `docs/PREREG-H3.md` |
 | H3b boundary | `scripts/h3b_dynamics.py` | `docs/PREREG-H3b.md` |
+| Collision 1 familiar swap | `scripts/nuisance_collision.py` | `docs/PREREG-COLLISION.md` |
+| Collision 2 capacity | `scripts/capacity_autopsy.py` | `docs/PREREG-COLLISION.md` |
+| OOD diagnostic | `scripts/ood_diagnostic.py` | `docs/PREREG-COLLISION-2.md` |
+| CNA-v1 | `scripts/adversarial_nuisance.py` | `docs/PREREG-COLLISION-2.md` |
+| CSA | `scripts/csa_nuisance.py` | `docs/PREREG-CSA.md` |
+| Le-Gates v1/v2 | `scripts/legates_dynamics.py` | `docs/PREREG-COLLISION-2.md`, `docs/PREREG-LEGATES-V2.md` |
+| Le-Gates v3 hard | `scripts/legates_hard.py` | `docs/PREREG-LEGATES-V3.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -357,10 +530,14 @@ fits in a few GPU-hours on one machine.
 Pre-registration hashes:
 
 ```
-H1   d08d0d69d24cadd8a2b46a0381056b222a34a7a69fa8bec68dc2ea466c95e411
-H2v4 ba4e3c37adcf4a5190394683684e942f382336838628e1f934c4623dac6daf57
-H3   c4660371980ef02518b99f9d41c817cc907aa7d67e7a450146f2602e2624f1ec
-H3b  eb2a6086b28bca9a44bd430d5d3338455cffc6038afc426b1394301ff30cea1e
+H1        d08d0d69d24cadd8a2b46a0381056b222a34a7a69fa8bec68dc2ea466c95e411
+H2v4      ba4e3c37adcf4a5190394683684e942f382336838628e1f934c4623dac6daf57
+H3        c4660371980ef02518b99f9d41c817cc907aa7d67e7a450146f2602e2624f1ec
+H3b       eb2a6086b28bca9a44bd430d5d3338455cffc6038afc426b1394301ff30cea1e
+Collision 48168a0df7e29371c3b568b4573f79332777471fc47cd186c476570a8b603c85
+CSA       ebe06189f15c3e9c42788e709b93d9f02c9ff491ce5682e8e99a7f259b9885c7
+LG-v2     d4dc847f6b2df2dd431292e9c91e98ffd9920ee68312fbf1defe458be3caea2c
+LG-v3     6d76fc43a881ba1210d16cacc92b55d1e98c2cc15798abfe2893fb8956fda6a5
 ```
 
 ## Appendix B — Hyperparameters
@@ -380,6 +557,10 @@ H3b  eb2a6086b28bca9a44bd430d5d3338455cffc6038afc426b1394301ff30cea1e
 | State-head weight | 0.5 |
 | Controller | `k=2`, `damp=1.0`, 32 steps, success 0.08 |
 | Readout | ridge, `alpha=1.0` |
+| Le-Gates adapter | 2×128 hidden, zero-init residual, 33k–35k params |
+| Le-Gates adaptation | 10 epochs, lr 1e-3, batch 32, weight decay 1e-4 |
+| Le-Gates anchor | 8 A episodes, distillation weight 1.0 |
+| Hard gate threshold | 95th percentile of A-anchor previous errors |
 
 ## References
 

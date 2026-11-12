@@ -53,7 +53,7 @@ direction + metric + population + threshold + falsifier
 Example:
 
 > At 50% of the training data, good-view pretraining improves OOD planning
-> success by ≥10 percentage points over the temporal baseline (three seeds,
+> success by ≥10 percentage points over the temporal baseline (five seeds,
 > paired bootstrap CI excludes zero), with ≤2 points in-distribution regression.
 
 That is a claim. "Good views will make world models better" is not.
@@ -64,7 +64,7 @@ The workflow:
    effect size, choose the loss weight. Do not report this as confirmation.
 2. **Freeze** — write the pre-registration: arms, splits, metrics, thresholds,
    seeds, stop rules. Commit the hash.
-3. **Confirm** — run the frozen protocol with three seeds. No changes.
+3. **Confirm** — run the frozen protocol with five seeds. No changes.
 4. **Report** — effect size, confidence interval, per-task diff, negative
    controls, and what was not run.
 
@@ -137,7 +137,7 @@ Pilot first: one seed, 25% data, all four arms. Use it to choose the good-view
 loss weight (sweep `0.01, 0.1, 1.0`) and to check that the probes move. Freeze
 the weight before the confirmatory run.
 
-Confirmatory: three seeds, all arms, all data fractions. Pre-register the H1/H2
+Confirmatory: five seeds, all arms, all data fractions. Pre-register the H1/H2
 thresholds.
 
 **Pilot result (exploratory).** Good views reduced the ratio in every seed:
@@ -244,6 +244,21 @@ still open. See [`docs/H3-CONFIRM.md`](docs/H3-CONFIRM.md).
 A predictor MSE is 0.00626 worse than temporal (5/5), both adapt to B. Good views
 are nuisance-specific, not dynamics-immune. See
 [`docs/H3B-CONFIRM.md`](docs/H3B-CONFIRM.md).
+
+**Collision status (2026-11-12): the claim is conditional.** Five seeds:
+
+- **OOD:** good shifted R² **−0.049** vs temporal **−0.840**. Absolute failure,
+  relative gain **+0.791**. A seed-0 pilot reversed under five seeds.
+- **CSA:** shifted R² **0.828** vs mix-ft **0.728** (**+0.101**, 95% CI +0.050
+  to +0.180), normal retained. CNA-v1 (no support) failed.
+- **Le-Gates:** no anchor **+146%** A forgetting; soft + 10% anchor **+104%**;
+  hard + 10% anchor **+26%**, routing **18.5%** of A. The router is the
+  bottleneck.
+- **Capacity:** Seed 4 is domain-specific allocation, not global rank collapse.
+
+See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
+[`docs/COLLISION-3.md`](docs/COLLISION-3.md), and
+[`docs/COLLISION-1-2.md`](docs/COLLISION-1-2.md).
 
 ---
 
@@ -372,7 +387,7 @@ The timeline is a target, not a contract. Gates matter more than dates.
    same-state nuisance ratio.
 3. Freeze `docs/PREREG.md` for H1/H2. Do this before the first confirmatory run;
    the pilot can proceed on a separate branch.
-4. Run three seeds at 96px.
+4. Run five seeds at 96px.
 5. Decide Gate 1. Write the result either way.
 
 The first result is not "does it work." It is "did the manipulation move the

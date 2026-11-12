@@ -137,7 +137,7 @@ without a meaningful in-distribution regression.
   success by at least **10 percentage points** over the temporal baseline.
 - In-distribution planning success drops by no more than **2 percentage points**.
 - At 100% data, the OOD gain is at least **5 points**.
-- The gain survives three seeds; the confidence interval excludes zero.
+- The gain survives five seeds; the confidence interval excludes zero.
 
 **Falsifier.** OOD gain below 5 points, ID regression above 5 points, or the gain
 disappears when the baseline is given the same total compute. Any of these is a
@@ -237,6 +237,34 @@ than temporal in 5/5 seeds; mean A forgetting is **+0.00532** for good vs
 **−0.00052** for temporal. Both arms adapt to B and end essentially tied
 (B post difference −0.00042). Good views do not transfer to dynamics. See
 [`docs/H3B-CONFIRM.md`](docs/H3B-CONFIRM.md).
+
+## 6c. Collision suite — the claim is conditional
+
+The confirmatory results are in-distribution. The collision suite tested the
+edges, and the edge is where the claim becomes conditional.
+
+**OOD diagnostic (5 seeds).** Under a held-out shifted nuisance, good-view state
+R² is **−0.049** vs temporal **−0.840**. Absolute OOD state decoding still fails,
+but good is **+0.791** better than temporal. The invariance is
+distribution-specific; it degrades gracefully, it does not transfer as a usable
+latent. A seed-0 pilot had suggested good was *worse* OOD; five seeds reversed
+it. See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md).
+
+**CSA (5 seeds).** Support plus state-level alignment: shifted R² **0.828** vs
+mix-ft **0.728** (**+0.101**, 95% CI +0.050 to +0.180), normal R² 0.927 vs
+0.932. Alignment without support (CNA-v1) failed: normal 0.929 → 0.739, shifted
+0.282 vs mix-ft 0.781. **Support first, then alignment.**
+
+**Le-Gates (5 seeds).** On the dynamics boundary, a frozen-encoder residual
+adapter forgets A **+146%** with no anchor; a soft error gate + 10% A replay
+forgets **+104%** (routing AUC 0.667); a hard gate forgets **+26%** but routes
+**18.5%** of A. The gate is the policy; isolation is the guarantee; the router is
+the bottleneck. See [`docs/COLLISION-3.md`](docs/COLLISION-3.md).
+
+**Capacity.** Seed 4's good latent has lower effective rank than Seed 1's in all
+good conditions, but A rank is higher than temporal and Seed 1 has lower B rank
+with better B R². The anomaly is domain-specific allocation, not global rank
+collapse. See [`docs/COLLISION-1-2.md`](docs/COLLISION-1-2.md).
 
 ## 7. H4 — the transfer claim
 
