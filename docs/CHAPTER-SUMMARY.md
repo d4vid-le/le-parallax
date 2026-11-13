@@ -76,6 +76,7 @@ The one-line story:
 | **Hypothesis A** | Discriminative reachability classifier on frozen dual-stream latents | AUC, abort, false abort | combined **1.000/1.00/0.03–0.05**, but state-only same and JEPA-only **0.285/0.874/0.290**; pass is the side+goal shortcut | `docs/HYPOTHESIS-A.md` |
 | **Hypothesis B** | Same-side alcove counterfactual; static vs GRU belief | AUC | static state **0.497**, static JEPA **0.391–0.497**, frozen GRU **0.515**, end-to-end JEPA+GRU **0.999–1.000** | `docs/HYPOTHESIS-B.md` |
 | **Sanity checks** | Spatial/dynamics probe + visible door-cue probe | state R², dynamics MSE, AUC | fine-tune state **0.157→0.442** but dynamics **0.0179→0.1097**; frozen JEPA door cue **0.524/0.529** at x=0.45 | `docs/SANITY-CHECKS.md` |
+| **Step 2 natural belief** | Hidden-alcove natural episodes; static vs separate belief stream | hard AUC, horizons, counterfactual | static JEPA **0.431/0.432**; belief hard **0.948–0.997**; +3/+5/+10 **0.960/0.980/0.980**; counterfactual **0.766**; pure natural hard ~1.0 but counterfactual **0.407** | `docs/NATURAL-BELIEF.md` |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -177,13 +178,13 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **Natural-episode belief state with a separate encoder.** The controlled
-   same-side counterfactual is won by an end-to-end JEPA+GRU (**0.999–1.000**)
-   while static state/JEPA are at chance. But the fine-tune makes JEPA dynamics
-   **6.1× worse**, and the frozen JEPA door cue is at chance (**0.524/0.529**)
-   even when visible. Use **Option A**: keep the planner JEPA frozen and train a
-   separate belief encoder + GRU. Next: natural episodes, then `t_cross+3/5`,
-   then planner integration. Still a controlled-memory result, not control.
+2. **Step 3 planner integration.** Step 2 passes all three gates: belief hard
+   AUC **0.948–0.997** vs static JEPA 0.432, horizons **0.960/0.980/0.980** at
+   +3/+5/+10, counterfactual **0.766** (pure natural was 0.407). Next: calibrate
+   the abort threshold offline for low false aborts, add persistence `k`, wire
+   the belief stream into the dual-stream planner, and compare reachable success,
+   unreachable abort rate, time-to-abort, and step savings. Five seeds only
+   after the closed-loop result is clean.
 3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.
@@ -208,5 +209,7 @@ The honest short version:
 > classifier passes only because of the state stream's side+goal shortcut;
 > JEPA-only is unstable. A same-side counterfactual kills the shortcut, and an
 > end-to-end JEPA+GRU belief state solves it (0.999–1.000) where static
-> state/JEPA are at chance. The memory mechanism works; natural-episode and
-> closed-loop control remain the frontier.
+> state/JEPA are at chance. A separate belief stream then clears the natural
+> hard subset (0.948–0.997), holds through t_cross+10 (0.98), and passes the
+> counterfactual re-check (0.766) — but only with the natural+counterfactual
+> mixture. Closed-loop control is the next frontier.

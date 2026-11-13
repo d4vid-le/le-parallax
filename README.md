@@ -269,6 +269,15 @@ GRU’s 0.515 is explained. Keep the planner JEPA frozen and train a **separate
 belief encoder + GRU** (Option A). See
 [`docs/SANITY-CHECKS.md`](docs/SANITY-CHECKS.md).
 
+**Step 2 natural belief passes the gate.** On natural hidden-alcove episodes,
+the static JEPA is **0.431 overall / 0.432 hard**; the separate belief stream
+reaches **0.948–0.997 hard** and holds **AUC 0.960 / 0.980 / 0.980 at
+t_cross+3/+5/+10**. The held-out counterfactual re-check is **0.766** (pass
+≥0.750). The pure natural model was a shortcut (hard ~1.0, counterfactual
+0.407); the natural + counterfactual mixture fixes it. Step 3 planner
+integration is justified. See
+[`docs/NATURAL-BELIEF.md`](docs/NATURAL-BELIEF.md).
+
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
 boundary, Anti-Equivalence failure, and the inconclusive Phase 2 pilot. The full
@@ -340,6 +349,7 @@ docs/DUAL-STREAM-PILOT.md dual-stream state/asymmetry/planner pilot
 docs/HYPOTHESIS-A.md      discriminative reachability probe (confounded)
 docs/HYPOTHESIS-B.md      recurrent belief-state counterfactual (passes)
 docs/SANITY-CHECKS.md     spatial/dynamics + door-cue probes
+docs/NATURAL-BELIEF.md    natural-episode belief stream (Step 2 pass)
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

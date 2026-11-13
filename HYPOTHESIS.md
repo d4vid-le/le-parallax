@@ -305,17 +305,22 @@ Two sanity checks decide the architecture: the reachability fine-tune improves
 state R² (0.157→0.442) but makes JEPA dynamics **6.1× worse**
 (0.0179→0.1097), and the frozen JEPA door cue is at chance (**0.524/0.529**)
 even when the door is visible. Keep the planner JEPA frozen and train a
-**separate belief encoder + GRU** (Option A). State decoupling works; the
-asymmetry/planner value does not. The trial is suggestive, not confirmatory.
-See
+**separate belief encoder + GRU** (Option A). On natural hidden-alcove episodes,
+the separate belief stream reaches **0.948–0.997 hard AUC**, holds
+**0.960/0.980/0.980** at `t_cross+3/+5/+10`, and passes the held-out
+counterfactual re-check (**0.766**). The pure natural model was a shortcut
+(counterfactual **0.407**); the natural+counterfactual mixture is necessary.
+State decoupling works; the asymmetry/planner value does not. Step 3 planner
+integration is justified. The trial is suggestive, not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
 [`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),
 [`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md),
 [`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md),
 [`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md),
-[`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md), and
-[`docs/SANITY-CHECKS.md`](docs/SANITY-CHECKS.md).
+[`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md),
+[`docs/SANITY-CHECKS.md`](docs/SANITY-CHECKS.md), and
+[`docs/NATURAL-BELIEF.md`](docs/NATURAL-BELIEF.md).
 
 ## 7. H4 — the transfer claim
 

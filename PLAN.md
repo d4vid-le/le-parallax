@@ -285,10 +285,14 @@ are nuisance-specific, not dynamics-immune. See
   improves state R² (0.157→0.442) but makes JEPA dynamics **6.1× worse**
   (0.0179→0.1097), and the frozen JEPA door cue is at chance (**0.524/0.529**)
   even when visible. Use **Option A**: keep the planner JEPA frozen and train a
-  separate belief encoder + GRU. The state path is solved; the
-  irreversibility/planner value is not. Next: natural-episode belief state and
-  planner integration, not another five-seed matrix. Inconclusive, not
-  confirmatory.
+  separate belief encoder + GRU. Step 2 passes: on natural hidden-alcove
+  episodes the static JEPA is 0.431/0.432, the belief stream reaches
+  **0.948–0.997 hard AUC**, holds **0.960/0.980/0.980** at `t_cross+3/+5/+10`,
+  and passes the counterfactual re-check (**0.766**); the pure natural model was
+  a shortcut (0.407). The natural+counterfactual mixture is necessary. Next:
+  Step 3 planner integration and closed-loop abort metrics, not another
+  five-seed matrix. The state path is solved; the irreversibility/planner value
+  is not yet. Inconclusive, not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

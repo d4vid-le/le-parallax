@@ -31,6 +31,7 @@ class Episode:
     dynamics: np.ndarray    # (2,) [damping, action_gain]
     door_open: np.ndarray | None = None  # (T + 1,) bool, optional one-way door
     occlude_door_right: bool = False  # hide door status when the puck is right
+    gate_open: np.ndarray | None = None  # (T + 1,) bool, hidden right alcove gate
 
 
 def sample_nuisance(rng: np.random.Generator) -> np.ndarray:
@@ -150,6 +151,8 @@ def step_state(
     door_open: bool | None = None,
     door_x: float = 0.5,
     door_gap: tuple[float, float] = (0.35, 0.65),
+    gate_open: bool | None = None,
+    gate_x: float = 0.78,
 ) -> np.ndarray:
     """One physics step. Walls absorb normal velocity.
 
@@ -171,6 +174,11 @@ def step_state(
             if not (door_open and in_gap):
                 x = door_x - 1e-4 if old_x < door_x else door_x + 1e-4
                 vx = 0.0
+    if gate_open is not None:
+        crossed = (old_x < gate_x <= x) or (old_x > gate_x >= x)
+        if crossed and not gate_open:
+            x = gate_x - 1e-4 if old_x < gate_x else gate_x + 1e-4
+            vx = 0.0
     if x < 0.05:
         x, vx = 0.05, 0.0
     elif x > 0.95:
@@ -205,10 +213,22 @@ def generate_episode(
     one_way_door: bool = False,
     door_goal_right: float = 0.6,
     occlude_door_right: bool = False,
+    hidden_alcove: bool = False,
+    alcove_start_right: float = 0.5,
 ) -> Episode:
     dynamics = DEFAULT_DYNAMICS if dynamics is None else np.asarray(dynamics, dtype=np.float32)
     state, goal = _initial_state(rng)
-    if one_way_door:
+    if hidden_alcove:
+        goal[0] = rng.uniform(0.85, 0.95)
+        goal[1] = rng.uniform(0.20, 0.80)
+        if rng.random() < alcove_start_right:
+            state[0] = rng.uniform(0.55, 0.72)
+            state[1] = rng.uniform(0.20, 0.80)
+        else:
+            state[0] = rng.uniform(0.15, 0.45)
+            state[1] = rng.uniform(0.20, 0.80)
+        one_way_door = True
+    elif one_way_door:
         state[0] = rng.uniform(0.15, 0.45)
         for _ in range(100):
             if rng.random() < door_goal_right:
@@ -230,6 +250,8 @@ def generate_episode(
     actions = []
     door_open = True if one_way_door else None
     door_flags = [door_open] if one_way_door else None
+    gate_open = True if hidden_alcove else None
+    gate_flags = [gate_open] if hidden_alcove else None
     for _ in range(steps):
         if rng.random() < goal_directed:
             direction = goal - state[:2]
@@ -239,7 +261,10 @@ def generate_episode(
             action = rng.uniform(-1.0, 1.0, size=2).astype(np.float32)
         actions.append(action)
         old_x = state[0]
-        state = step_state(state, action, dynamics, door_open=door_open)
+        state = step_state(
+            state, action, dynamics,
+            door_open=door_open, gate_open=gate_open,
+        )
         if (
             one_way_door
             and door_open
@@ -247,9 +272,13 @@ def generate_episode(
             and 0.35 <= state[1] <= 0.65
         ):
             door_open = False
+            if hidden_alcove:
+                gate_open = False
         states.append(state.copy())
         if door_flags is not None:
             door_flags.append(door_open)
+        if gate_flags is not None:
+            gate_flags.append(gate_open)
 
     states_arr = np.stack(states).astype(np.float32)
     frames = np.stack(
@@ -271,6 +300,7 @@ def generate_episode(
         dynamics=dynamics.astype(np.float32),
         door_open=np.array(door_flags, dtype=bool) if door_flags is not None else None,
         occlude_door_right=occlude_door_right,
+        gate_open=np.array(gate_flags, dtype=bool) if gate_flags is not None else None,
     )
 
 
@@ -286,6 +316,8 @@ def generate_episodes(
     one_way_door: bool = False,
     door_goal_right: float = 0.6,
     occlude_door_right: bool = False,
+    hidden_alcove: bool = False,
+    alcove_start_right: float = 0.5,
 ) -> list[Episode]:
     rng = np.random.default_rng(seed)
     return [
@@ -295,6 +327,8 @@ def generate_episodes(
             dynamics=dynamics, one_way_door=one_way_door,
             door_goal_right=door_goal_right,
             occlude_door_right=occlude_door_right,
+            hidden_alcove=hidden_alcove,
+            alcove_start_right=alcove_start_right,
         )
         for _ in range(n)
     ]
