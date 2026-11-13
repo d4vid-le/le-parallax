@@ -63,13 +63,14 @@ The belief holds through +10, well past the 3-frame window.
 
 ### Counterfactual re-check
 
-Held-out same-side counterfactual pairs, raw sequences:
+Held-out same-side counterfactual pairs, raw sequences, last frame per seed:
 
-**AUC 0.766** (pass ≥0.750).
+**AUC 0.766 / 0.974 / 0.895** (mean **0.878**; all pass ≥0.750).
 
-The pure natural model without the mixture had hard AUC ~1.0 but counterfactual
-AUC **0.407** — the lazy spatial shortcut. The mixture fixes the counterfactual
-check at a modest cost to natural confidence.
+The 0.766 is the weakest seed, not the mean. The pure natural model without the
+mixture had hard AUC ~1.0 but counterfactual AUC **0.407** — the lazy spatial
+shortcut. The mixture fixes the counterfactual check at a modest cost to natural
+confidence.
 
 ## 4. Gate to Step 3
 
@@ -77,7 +78,7 @@ check at a modest cost to natural confidence.
 |---|---|---|
 | Beats static baseline on hard subset | belief 0.948–0.997 vs static JEPA 0.432 | **pass** |
 | Holds at `t_cross+3` and `+5` | AUC 0.960 / 0.980 | **pass** |
-| Still passes counterfactual control | AUC 0.766 | **pass** |
+| Still passes counterfactual control | AUC 0.766 / 0.974 / 0.895 (mean 0.878) | **pass** |
 
 **Step 3 (planner integration) is justified.**
 
@@ -85,8 +86,8 @@ check at a modest cost to natural confidence.
 
 - The natural hard subset still has a state/position shortcut (state static
   0.832); the belief's advantage is partly the history and partly better state
-  use. The counterfactual 0.766 is the cleanest generalization evidence, and it
-  is just above the threshold.
+  use. The counterfactual last-frame AUC is **0.766 / 0.974 / 0.895** (mean
+  **0.878**); the weakest seed is just above the 0.750 threshold.
 - One natural dataset seed; 3 belief seeds.
 - The static JEPA below chance is a class-imbalance/readout artifact; the AUC is
   the comparable metric.

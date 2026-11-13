@@ -288,17 +288,21 @@ are nuisance-specific, not dynamics-immune. See
   separate belief encoder + GRU. Step 2 passes: on natural hidden-alcove
   episodes the static JEPA is 0.431/0.432, the belief stream reaches
   **0.948–0.997 hard AUC**, holds **0.960/0.980/0.980** at `t_cross+3/+5/+10`,
-  and passes the counterfactual re-check (**0.766**); the pure natural model was
-  a shortcut (0.407). The natural+counterfactual mixture is necessary. Step 3
-  first pass: base reachable success 0.75; state gate 0% false/100% abort but
-  likely a spatial shortcut; JEPA 0%/25%; natural belief 18% false; planner
-  belief **7.1% false/100% abort/0.83 steps after close**, calibration 1%. The
-  7.1% test is one episode over the 5% ceiling, the reachable test is small, and
-  the matched counterfactual closed-loop is missing. Next: matched
-  counterfactual, 100+ reachable test, ensemble of 3 planner-trained belief
-  seeds, and fix the base 0.75 reachable success; not another five-seed matrix.
-  The state path is solved; the irreversibility/planner value is not yet.
-  Inconclusive, not confirmatory.
+  and passes the counterfactual re-check (**0.766/0.974/0.895**; mean 0.878);
+  the pure natural model was a shortcut (0.407). The natural+counterfactual
+  mixture is necessary. Step 3: the matched counterfactual passes for all three
+  planner-belief seeds—branch AUC **1.000/0.998/1.000**, short-history control
+  **0.495**, open false abort **0.00**; state/JEPA early AUC **0.501/0.496**.
+  The 240-episode test has 119 reachable right-start and 121 unreachable
+  left-start episodes; the gate protects **119/119** reachable episodes and
+  aborts **81/81, 79/81, 77/81** gate-closed episodes at **3.40/2.90/3.19**
+  steps after close. The base controller is **119/119** on reachable episodes;
+  0.748 is 119/159 with 40 left-start non-crossings in the denominator. Seed 1
+  still has **8.8%** all-open false abort, all on task-unreachable failures.
+  Next: decide the primary false-abort set or add hard negatives and retrain;
+  lock `(τ,k)` on a fresh validation seed before the five-seed matrix. No
+  ensemble masking. The state path is solved; the irreversibility/planner value
+  is not yet. Inconclusive, not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

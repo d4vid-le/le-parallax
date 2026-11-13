@@ -76,8 +76,8 @@ The one-line story:
 | **Hypothesis A** | Discriminative reachability classifier on frozen dual-stream latents | AUC, abort, false abort | combined **1.000/1.00/0.03–0.05**, but state-only same and JEPA-only **0.285/0.874/0.290**; pass is the side+goal shortcut | `docs/HYPOTHESIS-A.md` |
 | **Hypothesis B** | Same-side alcove counterfactual; static vs GRU belief | AUC | static state **0.497**, static JEPA **0.391–0.497**, frozen GRU **0.515**, end-to-end JEPA+GRU **0.999–1.000** | `docs/HYPOTHESIS-B.md` |
 | **Sanity checks** | Spatial/dynamics probe + visible door-cue probe | state R², dynamics MSE, AUC | fine-tune state **0.157→0.442** but dynamics **0.0179→0.1097**; frozen JEPA door cue **0.524/0.529** at x=0.45 | `docs/SANITY-CHECKS.md` |
-| **Step 2 natural belief** | Hidden-alcove natural episodes; static vs separate belief stream | hard AUC, horizons, counterfactual | static JEPA **0.431/0.432**; belief hard **0.948–0.997**; +3/+5/+10 **0.960/0.980/0.980**; counterfactual **0.766**; pure natural hard ~1.0 but counterfactual **0.407** | `docs/NATURAL-BELIEF.md` |
-| **Step 3 closed-loop** | 160 calibration / 40 test; state, JEPA, belief abort gates | false abort, unreach abort, time after close | base reach **0.75**; state **0%/100%** (likely shortcut); JEPA **0%/25%**; natural belief **18%/100%**; planner belief **7.1%/100%/0.83 after close**; calibration **1%** | `docs/CLOSED-LOOP-GATE.md` |
+| **Step 2 natural belief** | Hidden-alcove natural episodes; static vs separate belief stream | hard AUC, horizons, counterfactual | static JEPA **0.431/0.432**; belief hard **0.948–0.997**; +3/+5/+10 **0.960/0.980/0.980**; counterfactual **0.766/0.974/0.895** (mean **0.878**); pure natural hard ~1.0 but counterfactual **0.407** | `docs/NATURAL-BELIEF.md` |
+| **Step 3 closed-loop** | 160 calibration / 240 test; state, JEPA, belief abort gates; matched CF | clean false abort, unreach abort, delay, branch AUC | **119** reachable right-start / **121** unreachable left-start; base **119/119** on reachable; belief clean false **0/119** all seeds; gate-closed abort **81/81, 79/81, 77/81**; matched CF branch AUC **1.000/0.998/1.000**, short-history **0.495**, open false **0.00**; state/JEPA early **0.501/0.496** | `docs/CLOSED-LOOP-GATE.md` |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -179,14 +179,18 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **Step 3 completion.** The planner-trained belief gate cuts false aborts from
-   18% to **7.1% (2/28)** and aborts **100%** of unreachable episodes **0.83
-   steps after the gate closes**; calibration false abort is **1.0%**. The state
-   gate’s 0%/100% is likely a spatial shortcut. The 7.1% test is one episode
-   over the 5% ceiling. Next: the matched counterfactual closed-loop, a
-   reachable test of 100+ episodes, an ensemble of 3 planner-trained belief
-   seeds, and a fix for the base planner’s 0.75 reachable success. No five-seed
-   matrix yet.
+2. **Step 3 completion.** The matched counterfactual passes for all three
+   planner-belief seeds: branch AUC **1.000/0.998/1.000**, short-history control
+   **0.495**, open false abort **0.00**, closed abort **0.93–0.98**; state/JEPA
+   early AUC **0.501/0.496**. On the 240-episode test, all seeds protect
+   **119/119** task-reachable right-start episodes; gate-closed abort is
+   **81/81, 79/81, 77/81** at **3.40/2.90/3.19** steps after close. The base
+   controller is **119/119** on reachable episodes; the 0.748 is 119/159
+   because 40 left-start non-crossings are in the denominator. Seed 1 still has
+   **8.8%** all-open false abort, all on task-unreachable failures. Next: decide
+   the primary false-abort set (clean vs all-open) or add hard negatives and
+   retrain; lock `(τ,k)` on a fresh validation seed before the five-seed matrix.
+   No ensemble masking.
 3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.
@@ -213,9 +217,11 @@ The honest short version:
 > end-to-end JEPA+GRU belief state solves it (0.999–1.000) where static
 > state/JEPA are at chance. A separate belief stream then clears the natural
 > hard subset (0.948–0.997), holds through t_cross+10 (0.98), and passes the
-> counterfactual re-check (0.766) — but only with the natural+counterfactual
-> mixture. In closed loop, the planner-trained belief gate cuts false aborts
-> from 18% to 7.1% and aborts 100% of unreachable episodes 0.83 steps after the
-> gate closes; calibration is 1%. But 7.1% is above the 5% ceiling, and the
-> state gate’s 0%/100% is probably a spatial shortcut. The matched
-> counterfactual closed-loop is the next frontier.
+> counterfactual re-check (0.766/0.974/0.895; mean 0.878) — but only with the
+> natural+counterfactual mixture. In closed loop, the matched counterfactual
+> passes for all three seeds: branch AUC 1.000/0.998/1.000, short-history
+> control 0.495, open false abort 0.00. The belief gate protects all 119/119
+> task-reachable episodes and aborts 81/81, 79/81, 77/81 gate-closed episodes
+> 3.40/2.90/3.19 steps after close. Seed 1 still has an 8.8% all-open false
+> abort, all on task-unreachable left-start failures. Decide the primary metric
+> or add hard negatives before the five-seed matrix.

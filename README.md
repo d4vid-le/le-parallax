@@ -272,20 +272,25 @@ belief encoder + GRU** (Option A). See
 **Step 2 natural belief passes the gate.** On natural hidden-alcove episodes,
 the static JEPA is **0.431 overall / 0.432 hard**; the separate belief stream
 reaches **0.948–0.997 hard** and holds **AUC 0.960 / 0.980 / 0.980 at
-t_cross+3/+5/+10**. The held-out counterfactual re-check is **0.766** (pass
-≥0.750). The pure natural model was a shortcut (hard ~1.0, counterfactual
-0.407); the natural + counterfactual mixture fixes it. Step 3 planner
-integration is justified. See
+t_cross+3/+5/+10**. The held-out counterfactual re-check is **0.766 / 0.974 /
+0.895** last-frame across the three seeds (mean **0.878**). The pure natural
+model was a shortcut (hard ~1.0, counterfactual 0.407); the natural +
+counterfactual mixture fixes it. Step 3 planner integration is justified. See
 [`docs/NATURAL-BELIEF.md`](docs/NATURAL-BELIEF.md).
 
-**Step 3 first pass: not cleanly passed.** Closed-loop calibration on 160
-episodes (99 reachable / 61 unreachable), test on 40 (28 / 12). The
-planner-trained belief gate cuts false aborts from **18% → 7.1%** (2/28) and
-aborts **100%** of unreachable episodes **0.83 steps after the gate closes**;
-the calibration false-abort is **1.0%**. The state gate gets 0/28 false and
-100% abort but is probably a spatial shortcut. The 7.1% test is one episode over
-the 5% ceiling, and the matched counterfactual closed-loop is still missing.
-Do not run the five-seed matrix yet. See
+**Step 3: matched counterfactual passes; one single-seed ceiling caveat.** The
+240-episode test has 119 task-reachable right-start episodes and 121 left-start
+episodes that are unreachable by construction. The base controller succeeds on
+all 119 reachable episodes; the quoted 0.748 is 119/159 because the denominator
+includes 40 left-start non-crossings. At τ=0.18, `k=4`, the three planner-belief
+seeds have clean false abort **0/119** and gate-closed abort **81/81, 79/81,
+77/81** at **3.40 / 2.90 / 3.19** steps after the gate closes. The matched
+counterfactual—identical branch frames and 4-D state, different crossing
+history—gives belief branch AUC **1.000 / 0.998 / 1.000**, short-history control
+**0.495**, and open false abort **0.00** for all seeds; state/JEPA early AUC is
+**0.501 / 0.496**. The literal all-open false-abort ceiling still fails for seed
+1 (**8.8%**, all on left-start task-unreachable failures), so the five-seed
+matrix is not started. See
 [`docs/CLOSED-LOOP-GATE.md`](docs/CLOSED-LOOP-GATE.md).
 
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
@@ -360,7 +365,7 @@ docs/HYPOTHESIS-A.md      discriminative reachability probe (confounded)
 docs/HYPOTHESIS-B.md      recurrent belief-state counterfactual (passes)
 docs/SANITY-CHECKS.md     spatial/dynamics + door-cue probes
 docs/NATURAL-BELIEF.md    natural-episode belief stream (Step 2 pass)
-docs/CLOSED-LOOP-GATE.md  closed-loop abort-gate calibration (not clean)
+docs/CLOSED-LOOP-GATE.md  closed-loop gate + matched counterfactual
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

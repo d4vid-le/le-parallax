@@ -141,6 +141,7 @@ def gate_eval(runs, key, tau, k):
     reach_n = reach_success = false_abort = 0
     unreach_n = unreach_abort = 0
     times, delays = [], []
+    clean_n = clean_false = fail_n = fail_false = 0
     for r in runs:
         p = r[key]
         aborted = False
@@ -152,6 +153,12 @@ def gate_eval(runs, key, tau, k):
                 break
         if r["gate_end"]:
             reach_n += 1
+            if r["success"]:
+                clean_n += 1
+                clean_false += int(aborted)
+            else:
+                fail_n += 1
+                fail_false += int(aborted)
             if aborted:
                 false_abort += 1
             else:
@@ -167,6 +174,10 @@ def gate_eval(runs, key, tau, k):
         "reach_n": reach_n,
         "reach_success": reach_success / max(reach_n, 1),
         "false_abort": false_abort / max(reach_n, 1),
+        "false_abort_clean": clean_false / max(clean_n, 1),
+        "false_abort_failure": fail_false / max(fail_n, 1),
+        "clean_n": clean_n,
+        "fail_n": fail_n,
         "unreach_n": unreach_n,
         "unreach_abort": unreach_abort / max(unreach_n, 1),
         "time_to_abort": float(np.mean(times)) if times else float("nan"),
@@ -179,7 +190,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jepa", default="runs/dual-stream-jepa/models/s0-asym_clean.safetensors")
     ap.add_argument("--state", default="runs/dual-stream-state/state_stream_s0.safetensors")
-    ap.add_argument("--belief", default="runs/natural-belief/belief_s1.safetensors")
+    ap.add_argument("--belief", default="runs/planner-belief/belief_s0.safetensors")
     ap.add_argument("--cal-episodes", type=int, default=160)
     ap.add_argument("--test-episodes", type=int, default=40)
     ap.add_argument("--out", default="runs/closed-loop-gate")
@@ -257,9 +268,33 @@ def main():
             f"cal false {best['false_abort']:.2f} abort {best['unreach_abort']:.2f} "
             f"t {best['time_to_abort']:.1f} | "
             f"test success {rt['reach_success']:.2f} false {rt['false_abort']:.2f} "
+            f"(clean {rt['false_abort_clean']:.2f} fail {rt['false_abort_failure']:.2f}) "
             f"abort {rt['unreach_abort']:.2f} t {rt['time_to_abort']:.1f}",
             flush=True,
         )
+
+    # Full test grid for the belief/state gates (the user's k/tau sweep).
+    report["test_grid"] = {}
+    for key in ("state", "jepa", "belief"):
+        col = f"{key}_p"
+        grid = []
+        for tau in taus:
+            for k in ks:
+                r = gate_eval(test_runs, col, tau, k)
+                grid.append({"tau": tau, "k": k, **r})
+        report["test_grid"][key] = grid
+        print(f"test grid {key}:", flush=True)
+        for g in grid:
+            if g["tau"] in (0.18, 0.20, 0.25):
+                print(
+                    f"  tau {g['tau']:.2f} k {g['k']}: "
+                    f"false {g['false_abort']:.3f} "
+                    f"(clean {g['false_abort_clean']:.3f} "
+                    f"fail {g['false_abort_failure']:.3f}) "
+                    f"abort {g['unreach_abort']:.2f} "
+                    f"delay {g['abort_delay_after_close']:.2f}",
+                    flush=True,
+                )
 
     base = {
         "reach_success": float(np.mean([

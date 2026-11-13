@@ -308,13 +308,15 @@ even when the door is visible. Keep the planner JEPA frozen and train a
 **separate belief encoder + GRU** (Option A). On natural hidden-alcove episodes,
 the separate belief stream reaches **0.948–0.997 hard AUC**, holds
 **0.960/0.980/0.980** at `t_cross+3/+5/+10`, and passes the held-out
-counterfactual re-check (**0.766**). The pure natural model was a shortcut
-(counterfactual **0.407**); the natural+counterfactual mixture is necessary.
-In closed loop, the planner-trained belief gate cuts false aborts from 18% to
-**7.1% (2/28)** and aborts **100%** of unreachable episodes **0.83 steps after
-the gate closes**; the calibration false abort is **1.0%**. The state gate’s
-0%/100% is likely a spatial shortcut. The 7.1% test is one episode over the 5%
-ceiling, and the matched counterfactual closed-loop is missing. State decoupling
+counterfactual re-check (**0.766/0.974/0.895** last-frame; mean **0.878**). The
+pure natural model was a shortcut (counterfactual **0.407**); the
+natural+counterfactual mixture is necessary. In closed loop, the matched
+counterfactual passes for all three planner-belief seeds: branch AUC
+**1.000/0.998/1.000**, short-history control **0.495**, open false abort
+**0.00**; state/JEPA early AUC **0.501/0.496**. The gate protects all **119/119**
+task-reachable episodes and aborts **81/81, 79/81, 77/81** gate-closed episodes
+**3.40/2.90/3.19** steps after close. Seed 1 still has an **8.8%** all-open
+false-abort rate, all on task-unreachable left-start failures. State decoupling
 works; the asymmetry/planner value is not yet clean. The trial is suggestive,
 not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
