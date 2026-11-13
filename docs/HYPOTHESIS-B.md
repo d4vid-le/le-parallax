@@ -74,6 +74,21 @@ The counterfactual label is a deterministic history feature (a crossing
 followed by the matched current state); the GRU can learn it. The static
 baselines confirm the test is honest.
 
+## 5b. Sanity checks and architecture decision
+
+See [`SANITY-CHECKS.md`](SANITY-CHECKS.md).
+
+- **Spatial/dynamics:** the reachability fine-tune improved state R²
+  (0.157 → 0.442) but made one-step JEPA dynamics **6.1× worse**
+  (0.0179 → 0.1097). It is not safe as the planner's JEPA encoder.
+- **Door cue:** at x=0.45 with the door fully visible, the frozen JEPA linear
+  probe is **0.524** (single frame) / **0.529** (3-frame). The frozen features
+  do not carry the cue; the frozen GRU's 0.515 is explained.
+- **Decision:** keep the planner JEPA frozen and train a **separate belief
+  encoder + GRU** (Option A). Option B (joint multi-task JEPA dynamics +
+  reachability) is the fallback. The natural-episode test must use the separate
+  belief stream, not the fine-tuned JEPA.
+
 ## 6. What this does not establish
 
 - Natural-episode reachability, where the history is noisy and the crossing time

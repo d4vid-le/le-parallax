@@ -75,6 +75,7 @@ The one-line story:
 | **Dual-stream pilot** | Frozen 47k state stream + 142k JEPA streams with no state loss; state-dynamics + JEPA shooting planner | state R², Δasym, planner AUC | state **0.936** passes; JEPA direction margin **+0.018**; planner **0.500** vs state-only **0.611** | `docs/DUAL-STREAM-PILOT.md` |
 | **Hypothesis A** | Discriminative reachability classifier on frozen dual-stream latents | AUC, abort, false abort | combined **1.000/1.00/0.03–0.05**, but state-only same and JEPA-only **0.285/0.874/0.290**; pass is the side+goal shortcut | `docs/HYPOTHESIS-A.md` |
 | **Hypothesis B** | Same-side alcove counterfactual; static vs GRU belief | AUC | static state **0.497**, static JEPA **0.391–0.497**, frozen GRU **0.515**, end-to-end JEPA+GRU **0.999–1.000** | `docs/HYPOTHESIS-B.md` |
+| **Sanity checks** | Spatial/dynamics probe + visible door-cue probe | state R², dynamics MSE, AUC | fine-tune state **0.157→0.442** but dynamics **0.0179→0.1097**; frozen JEPA door cue **0.524/0.529** at x=0.45 | `docs/SANITY-CHECKS.md` |
 
 These are not embarrassments. They are the reason the surviving claims are
 credible.
@@ -176,12 +177,13 @@ can guarantee isolation.
 1. **A better router.** The Le-Gates result says the gate is not the bottleneck;
    the detector is. Test more A replay (25–50%), a learned detector with a
    false-open penalty, or per-layer masks/frozen slots.
-2. **Natural-episode belief state.** The controlled same-side counterfactual is
-   won by an end-to-end JEPA+GRU (**0.999–1.000**) while static state/JEPA are at
-   chance (0.497/0.391–0.497) and the frozen-feature GRU is at chance (0.515).
-   Next: train and evaluate the belief state on **natural episodes**, integrate
-   it into the planner, and test the fully occluded `t_cross+3/5` case. This is
-   still a controlled-memory result, not a control result.
+2. **Natural-episode belief state with a separate encoder.** The controlled
+   same-side counterfactual is won by an end-to-end JEPA+GRU (**0.999–1.000**)
+   while static state/JEPA are at chance. But the fine-tune makes JEPA dynamics
+   **6.1× worse**, and the frozen JEPA door cue is at chance (**0.524/0.529**)
+   even when visible. Use **Option A**: keep the planner JEPA frozen and train a
+   separate belief encoder + GRU. Next: natural episodes, then `t_cross+3/5`,
+   then planner integration. Still a controlled-memory result, not control.
 3. **Control retention.** CSA and the Le-Gates prototype are predictor-level.
    The next test is whether the OOD geometry and the router preserve control,
    not just state R²/MSE.

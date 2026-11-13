@@ -281,7 +281,11 @@ are nuisance-specific, not dynamics-immune. See
   static state/JEPA are at chance (0.497/0.391–0.497), the frozen JEPA+GRU is
   at chance (0.515), and an end-to-end JEPA+GRU reaches **0.999–1.000**. The
   belief state solves the controlled memory test; natural-episode and
-  closed-loop control remain open. The state path is solved; the
+  closed-loop control remain open. Sanity checks: the reachability fine-tune
+  improves state R² (0.157→0.442) but makes JEPA dynamics **6.1× worse**
+  (0.0179→0.1097), and the frozen JEPA door cue is at chance (**0.524/0.529**)
+  even when visible. Use **Option A**: keep the planner JEPA frozen and train a
+  separate belief encoder + GRU. The state path is solved; the
   irreversibility/planner value is not. Next: natural-episode belief state and
   planner integration, not another five-seed matrix. Inconclusive, not
   confirmatory.

@@ -301,15 +301,21 @@ same-side alcove counterfactual kills that shortcut: static state/JEPA are at
 chance (0.497/0.391–0.497), the frozen-feature JEPA+GRU is at chance (0.515), and
 an end-to-end JEPA+GRU reaches **0.999–1.000**. The belief state solves the
 controlled memory test; natural-episode and closed-loop control remain open.
-State decoupling works; the asymmetry/planner value does not. The trial is
-suggestive, not confirmatory. See
+Two sanity checks decide the architecture: the reachability fine-tune improves
+state R² (0.157→0.442) but makes JEPA dynamics **6.1× worse**
+(0.0179→0.1097), and the frozen JEPA door cue is at chance (**0.524/0.529**)
+even when the door is visible. Keep the planner JEPA frozen and train a
+**separate belief encoder + GRU** (Option A). State decoupling works; the
+asymmetry/planner value does not. The trial is suggestive, not confirmatory.
+See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
 [`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),
 [`docs/PHASE2-ORACLE.md`](docs/PHASE2-ORACLE.md),
 [`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md),
-[`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md), and
-[`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md).
+[`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md),
+[`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md), and
+[`docs/SANITY-CHECKS.md`](docs/SANITY-CHECKS.md).
 
 ## 7. H4 — the transfer claim
 

@@ -73,7 +73,7 @@ def build_raw(n, seed):
 
 
 def train_one(Xtr, ytr, Xte, yte, frame_encoder, seed, epochs=40,
-              batch=8, lr=1e-3):
+              batch=8, lr=1e-3, save_path=None):
     rng = np.random.default_rng(seed)
     mx.random.seed(seed)
     model = JEPAGRU(frame_encoder)
@@ -103,6 +103,9 @@ def train_one(Xtr, ytr, Xte, yte, frame_encoder, seed, epochs=40,
                 f"    epoch {epoch}/{epochs} loss {total / max(seen, 1):.4f}",
                 flush=True,
             )
+    if save_path is not None:
+        pathlib.Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        model.frame.save_weights(str(save_path))
     prob = np.array(mx.sigmoid(model(mx.array(Xte)))[:, 0])
     return auc(prob[yte > 0.5], prob[yte <= 0.5])
 
@@ -114,6 +117,7 @@ def main():
     ap.add_argument("--test-n", type=int, default=200)
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     ap.add_argument("--epochs", type=int, default=40)
+    ap.add_argument("--save", action="store_true")
     ap.add_argument("--out", default="runs/counterfactual-gru")
     args = ap.parse_args()
 
@@ -129,6 +133,9 @@ def main():
         a = train_one(
             Xtr, ytr, Xte, yte, jepa.encoder.frame, seed,
             epochs=args.epochs,
+            save_path=(
+                out / f"frame_s{seed}.safetensors" if args.save else None
+            ),
         )
         rows.append({"seed": seed, "auc": a})
         print(f"jepa_gru end2end seed {seed}: AUC {a:.3f}", flush=True)

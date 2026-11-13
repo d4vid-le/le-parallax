@@ -261,6 +261,14 @@ and the **end-to-end JEPA+GRU** trained for 40 epochs reaches **AUC 0.999 /
 natural-episode or control result. See
 [`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md).
 
+**The sanity checks decide the architecture.** The reachability fine-tune
+improved state R² (0.157 → 0.442) but made JEPA dynamics **6.1× worse**
+(0.0179 → 0.1097). And at x=0.45 with the door fully visible, the frozen JEPA
+door-cue probe is **AUC 0.524 / 0.529** — it never encoded the cue. The frozen
+GRU’s 0.515 is explained. Keep the planner JEPA frozen and train a **separate
+belief encoder + GRU** (Option A). See
+[`docs/SANITY-CHECKS.md`](docs/SANITY-CHECKS.md).
+
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
 boundary, Anti-Equivalence failure, and the inconclusive Phase 2 pilot. The full
@@ -331,6 +339,7 @@ docs/PHASE2-ORACLE.md     oracle ceiling + stop-gradient probe
 docs/DUAL-STREAM-PILOT.md dual-stream state/asymmetry/planner pilot
 docs/HYPOTHESIS-A.md      discriminative reachability probe (confounded)
 docs/HYPOTHESIS-B.md      recurrent belief-state counterfactual (passes)
+docs/SANITY-CHECKS.md     spatial/dynamics + door-cue probes
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

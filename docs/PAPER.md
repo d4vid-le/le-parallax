@@ -412,6 +412,7 @@ the isolation.
 | Dual-stream | State stream **0.936** passes; JEPA no-state-loss direction margin **+0.018**; planner **0.500** vs state-only **0.611** | State decoupling works; the asymmetry/planner value does not; the next test is a JEPA reachability classifier, not another matrix |
 | Hypothesis A | Combined classifier AUC **1.000**, abort **1.00**; state-only same; JEPA-only **0.285 / 0.874 / 0.290** | The pass is the state stream's side+goal shortcut, not JEPA irreversibility; the test is confounded, next is a belief-state JEPA |
 | Hypothesis B | Static controls **0.497 / 0.391–0.497**; frozen JEPA+GRU **0.515**; end-to-end JEPA+GRU **0.999–1.000** | The belief state solves the controlled counterfactual, but only with end-to-end training; this is a memory result, not control |
+| Sanity checks | Reachability fine-tune: state **0.157→0.442** but dynamics **0.0179→0.1097**; frozen JEPA door cue at x=0.45 **0.524/0.529** | The fine-tune breaks dynamics and the frozen JEPA lacks the door cue; use a separate belief encoder + GRU (Option A) |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -536,6 +537,15 @@ clearing the 0.750 trigger. The belief state solves the controlled memory test;
 this is not yet a natural-episode or closed-loop control result. See
 [`HYPOTHESIS-B.md`](HYPOTHESIS-B.md).
 
+Two sanity checks decide the architecture. The reachability fine-tune **improved**
+state R² (0.157 → 0.442) but made one-step JEPA dynamics **6.1× worse**
+(0.0179 → 0.1097): it is not safe as the planner's JEPA encoder. And at x=0.45
+with the door fully visible, a linear probe on the frozen JEPA is **AUC 0.524 /
+0.529** — the pretrained features never encoded the door cue. The frozen GRU's
+0.515 is explained. The architecture choice is **Option A**: keep the planner
+JEPA frozen and train a **separate belief encoder + GRU**. See
+[`SANITY-CHECKS.md`](SANITY-CHECKS.md).
+
 ### 6.4 Why the effect appears in control only after domain randomization
 
 The first control tests failed because the encoder had never seen the shifted
@@ -624,6 +634,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Dual-stream pilot | `scripts/dual_stream_planner.py`, `scripts/asymmetry_collision.py` | `docs/DUAL-STREAM-PILOT.md` |
 | Hypothesis A | `scripts/reachability_classifier.py` | `docs/HYPOTHESIS-A.md` |
 | Hypothesis B | `scripts/counterfactual_belief.py`, `scripts/counterfactual_gru.py` | `docs/HYPOTHESIS-B.md` |
+| Sanity checks | `scripts/spatial_forgetting_probe.py`, `scripts/door_cue_probe.py` | `docs/SANITY-CHECKS.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -683,6 +694,8 @@ Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 | Reachability classifier | 2-layer MLP, 50 epochs, 3 seeds, τ = p17 validation reachable |
 | Belief counterfactual | paired open/closed, identical last 3 frames, 800/400 sequences |
 | Belief GRU | JEPA frame encoder + GRU 64, 40 epochs, batch 8, 3 seeds |
+| Spatial probe | ridge on 3-frame latent; one-step dynamics MSE |
+| Door-cue probe | linear ridge at x=0.45/0.50, single vs 3-frame |
 
 ## References
 
