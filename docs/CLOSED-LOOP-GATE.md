@@ -38,6 +38,8 @@ seed, delay **2.89–2.99** steps after close. Matched counterfactual branch AUC
   left-start. The quoted 0.770 is 124/161: the denominator contains the 37
   left-start non-crossings.
 
+![Step 3 world and matched counterfactual](../snapshots/step3-world-and-counterfactual.png)
+
 ## 2. Final five-seed natural test (held-out seed 12000)
 
 | seed | false abort (all 161 open) | clean false (124 reachable) | left non-cross false (37) | gate-closed abort (79) | delay after close |
@@ -85,6 +87,8 @@ crossing history, not the current observation. Over the full post-branch
 window, the state gate reaches **0.78 closed / 0.14 open** and JEPA **0.26 /
 0.26**, but their early AUCs are chance; they separate only after the closed
 branch is physically stuck at the gate.
+
+![Step 3 final five-seed matrix](../snapshots/step3-final-matrix.png)
 
 ## 4. What fixed seed 1
 

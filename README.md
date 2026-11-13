@@ -293,6 +293,10 @@ planner rollouts plus left-start non-crossing hard negatives, not by changing
 the metric. See
 [`docs/CLOSED-LOOP-GATE.md`](docs/CLOSED-LOOP-GATE.md).
 
+![Step 3 world and matched counterfactual](snapshots/step3-world-and-counterfactual.png)
+
+![Step 3 final five-seed matrix](snapshots/step3-final-matrix.png)
+
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
 boundary, Anti-Equivalence failure, and the inconclusive Phase 2 pilot. The full

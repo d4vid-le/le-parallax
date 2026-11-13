@@ -681,6 +681,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Step 2 belief | `scripts/natural_belief.py` | `docs/NATURAL-BELIEF.md` |
 | Step 3 gate | `scripts/closed_loop_gate.py`, `scripts/planner_belief_train.py` | `docs/CLOSED-LOOP-GATE.md` |
 | Step 3 matched CF | `scripts/matched_cf_closed_loop.py`, `scripts/controller_probe.py`, `scripts/final_matrix_report.py` | `docs/CLOSED-LOOP-GATE.md` |
+| Step 3 visuals | `scripts/make_step3_visuals.py` | `snapshots/step3-world-and-counterfactual.png`, `snapshots/step3-final-matrix.png` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
