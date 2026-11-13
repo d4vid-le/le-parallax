@@ -310,15 +310,16 @@ the separate belief stream reaches **0.948–0.997 hard AUC**, holds
 **0.960/0.980/0.980** at `t_cross+3/+5/+10`, and passes the held-out
 counterfactual re-check (**0.766/0.974/0.895** last-frame; mean **0.878**). The
 pure natural model was a shortcut (counterfactual **0.407**); the
-natural+counterfactual mixture is necessary. In closed loop, the matched
-counterfactual passes for all three planner-belief seeds: branch AUC
-**1.000/0.998/1.000**, short-history control **0.495**, open false abort
-**0.00**; state/JEPA early AUC **0.501/0.496**. The gate protects all **119/119**
-task-reachable episodes and aborts **81/81, 79/81, 77/81** gate-closed episodes
-**3.40/2.90/3.19** steps after close. Seed 1 still has an **8.8%** all-open
-false-abort rate, all on task-unreachable left-start failures. State decoupling
-works; the asymmetry/planner value is not yet clean. The trial is suggestive,
-not confirmatory. See
+natural+counterfactual mixture is necessary. In the final five-seed closed-loop
+matrix on fresh held-out episodes (seed 12000), all-open false abort is
+**0–0.6%**, clean false abort is **0/124** for every seed, gate-closed abort is
+**79/79** for every seed at **2.89–2.99** steps after close. The fresh matched
+counterfactual gives branch AUC **0.9998–1.000**, short-history **0.494–
+0.495**, open false abort **0.00**; state/JEPA early AUC **0.5011/0.4960** and
+closed-gate recall **72.2%/29.1%**. Seed 1 was fixed by 480 planner rollouts
+plus left-start non-crossing hard negatives, not by changing the metric. State
+decoupling works; the asymmetry/planner value is not yet clean. The trial is
+suggestive, not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
 [`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),

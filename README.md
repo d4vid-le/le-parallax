@@ -278,19 +278,19 @@ model was a shortcut (hard ~1.0, counterfactual 0.407); the natural +
 counterfactual mixture fixes it. Step 3 planner integration is justified. See
 [`docs/NATURAL-BELIEF.md`](docs/NATURAL-BELIEF.md).
 
-**Step 3: matched counterfactual passes; one single-seed ceiling caveat.** The
-240-episode test has 119 task-reachable right-start episodes and 121 left-start
-episodes that are unreachable by construction. The base controller succeeds on
-all 119 reachable episodes; the quoted 0.748 is 119/159 because the denominator
-includes 40 left-start non-crossings. At τ=0.18, `k=4`, the three planner-belief
-seeds have clean false abort **0/119** and gate-closed abort **81/81, 79/81,
-77/81** at **3.40 / 2.90 / 3.19** steps after the gate closes. The matched
-counterfactual—identical branch frames and 4-D state, different crossing
-history—gives belief branch AUC **1.000 / 0.998 / 1.000**, short-history control
-**0.495**, and open false abort **0.00** for all seeds; state/JEPA early AUC is
-**0.501 / 0.496**. The literal all-open false-abort ceiling still fails for seed
-1 (**8.8%**, all on left-start task-unreachable failures), so the five-seed
-matrix is not started. See
+**Step 3 passes on a fresh held-out five-seed matrix.** The 240-episode held-out
+set (seed 12000) has 124 task-reachable right-start episodes and 116 left-start
+episodes that are unreachable by construction. At locked τ=0.18, `k=4`, all five
+planner-belief seeds pass the literal all-open ≤5% bar: **0/161, 0/161, 1/161,
+1/161, 0/161**; clean false abort is **0/124** for every seed; gate-closed abort
+is **79/79** for every seed at **2.89–2.99** steps after close. The fresh
+matched counterfactual—identical branch frames and 4-D state, different crossing
+history—gives belief branch AUC **0.9998–1.000**, short-history control
+**0.494–0.495**, static state/JEPA early AUC **0.5011 / 0.4960**, and open false
+abort **0.00**; state-only and JEPA are at chance at the branch, and on the
+natural test they reach only 72.2%/29.1% closed-gate recall. The earlier seed-1 failure was fixed by 480
+planner rollouts plus left-start non-crossing hard negatives, not by changing
+the metric. See
 [`docs/CLOSED-LOOP-GATE.md`](docs/CLOSED-LOOP-GATE.md).
 
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
@@ -365,7 +365,7 @@ docs/HYPOTHESIS-A.md      discriminative reachability probe (confounded)
 docs/HYPOTHESIS-B.md      recurrent belief-state counterfactual (passes)
 docs/SANITY-CHECKS.md     spatial/dynamics + door-cue probes
 docs/NATURAL-BELIEF.md    natural-episode belief stream (Step 2 pass)
-docs/CLOSED-LOOP-GATE.md  closed-loop gate + matched counterfactual
+docs/CLOSED-LOOP-GATE.md  closed-loop gate + final five-seed matrix
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 

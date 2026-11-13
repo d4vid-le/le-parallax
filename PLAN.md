@@ -290,19 +290,18 @@ are nuisance-specific, not dynamics-immune. See
   **0.948–0.997 hard AUC**, holds **0.960/0.980/0.980** at `t_cross+3/+5/+10`,
   and passes the counterfactual re-check (**0.766/0.974/0.895**; mean 0.878);
   the pure natural model was a shortcut (0.407). The natural+counterfactual
-  mixture is necessary. Step 3: the matched counterfactual passes for all three
-  planner-belief seeds—branch AUC **1.000/0.998/1.000**, short-history control
-  **0.495**, open false abort **0.00**; state/JEPA early AUC **0.501/0.496**.
-  The 240-episode test has 119 reachable right-start and 121 unreachable
-  left-start episodes; the gate protects **119/119** reachable episodes and
-  aborts **81/81, 79/81, 77/81** gate-closed episodes at **3.40/2.90/3.19**
-  steps after close. The base controller is **119/119** on reachable episodes;
-  0.748 is 119/159 with 40 left-start non-crossings in the denominator. Seed 1
-  still has **8.8%** all-open false abort, all on task-unreachable failures.
-  Next: decide the primary false-abort set or add hard negatives and retrain;
-  lock `(τ,k)` on a fresh validation seed before the five-seed matrix. No
-  ensemble masking. The state path is solved; the irreversibility/planner value
-  is not yet. Inconclusive, not confirmatory.
+  mixture is necessary. Step 3 final five-seed matrix on fresh held-out
+  episodes (seed 12000): all-open false abort **0–0.6%**, clean false abort
+  **0/124** every seed, gate-closed abort **79/79** every seed at
+  **2.89–2.99** steps after close. The fresh matched counterfactual gives branch
+  AUC **0.9998–1.000** every seed, short-history **0.494–0.495**, open false abort
+  **0.00**; state/JEPA early AUC **0.5011/0.4960** and closed-gate recall
+  **72.2%/29.1%**. The base controller is 124/124 on reachable episodes; 0.770
+  is 124/161 with 37 left-start non-crossings in the denominator. Seed 1 was
+  fixed by 480 planner rollouts plus left-start non-crossing hard negatives,
+  not by changing the metric. The gate matrix passes; keep the ensemble as an
+  optional deployment row only. The state path is solved; the
+  irreversibility/planner value is not yet. Inconclusive, not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

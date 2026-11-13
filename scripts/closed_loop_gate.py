@@ -190,9 +190,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jepa", default="runs/dual-stream-jepa/models/s0-asym_clean.safetensors")
     ap.add_argument("--state", default="runs/dual-stream-state/state_stream_s0.safetensors")
-    ap.add_argument("--belief", default="runs/planner-belief/belief_s0.safetensors")
+    ap.add_argument("--belief", default="runs/planner-belief-hard/belief_s0.safetensors")
     ap.add_argument("--cal-episodes", type=int, default=160)
-    ap.add_argument("--test-episodes", type=int, default=40)
+    ap.add_argument("--test-episodes", type=int, default=240)
+    ap.add_argument("--cal-seed", type=int, default=7000)
+    ap.add_argument("--test-seed", type=int, default=12000)
     ap.add_argument("--out", default="runs/closed-loop-gate")
     args = ap.parse_args()
 
@@ -216,12 +218,12 @@ def main():
     belief.load_weights(args.belief)
 
     cal_eps = generate_episodes(
-        n=args.cal_episodes, steps=32, size=96, seed=7000,
+        n=args.cal_episodes, steps=32, size=96, seed=args.cal_seed,
         goal_directed=0.5, nuisance_mode="normal",
         hidden_alcove=True, occlude_door_right=True,
     )
     test_eps = generate_episodes(
-        n=args.test_episodes, steps=32, size=96, seed=9000,
+        n=args.test_episodes, steps=32, size=96, seed=args.test_seed,
         goal_directed=0.5, nuisance_mode="normal",
         hidden_alcove=True, occlude_door_right=True,
     )

@@ -1,102 +1,111 @@
-# Closed-loop abort gates — Step 3
+# Closed-loop abort gates — Step 3 final matrix
 
-**Status:** matched counterfactual **passes**; clean-approach false abort is
-**0%** for all three planner-belief seeds. The literal 5% *overall gate-status*
-ceiling is not met by seed 1 (8.8%), so the five-seed matrix is **not started**.
-2026-11-12.
+**Status:** **passes** on a fresh held-out episode seed. Five belief seeds,
+locked `τ=0.18, k=4`: all-open false abort **0.0–0.6%**, clean/task-reachable
+false abort **0/124** for every seed, gate-closed abort **79/79** for every
+seed, delay **2.89–2.99** steps after close. Matched counterfactual branch AUC
+**0.9998–1.000**, short-history control **0.494–0.495**, open false abort
+**0.00**. 2026-11-12.
 
 **Code:** `scripts/closed_loop_gate.py`,
 `scripts/planner_belief_train.py`,
 `scripts/matched_cf_closed_loop.py`,
 `scripts/controller_probe.py`,
 `scripts/counterfactual_seed_check.py`.
-**Artifacts:** `runs/closed-loop-gate-large*/`,
-`runs/matched-cf-closed-loop*/`,
-`runs/controller-probe*/` (git-ignored).
+**Artifacts:** `runs/planner-belief-hard/`,
+`runs/final-gate-s*/`, `runs/final-cf-s*/`,
+`runs/final-matrix-report/` (git-ignored).
 
-## 1. Setup
+## 1. Locked protocol
 
-Base planner: frozen state stream + state-feedback controller on the natural
-hidden-alcove world. The abort gate never steers; it only stops the episode.
-The hidden right-side gate closes with the one-way door and is never rendered.
+- **Belief training:** 480 planner rollouts from seed 5000; 63 unique
+  left-start non-crossing hard negatives (`gate_open=1`) duplicated 2×; 400
+  held-out counterfactual pairs; 60 epochs; five model seeds.
+- **Calibration:** 160 episodes, seed 7000.
+- **Validation:** 240 episodes, seed 9000. Used to fix seed 1 and select
+  `(τ,k)`. Not the confirmatory set.
+- **Held-out final:** 240 episodes, seed 12000; matched counterfactual pairs
+  also seeded 12000.
+- **Locked gates:** belief `τ=0.18, k=4`; state `τ=0.25, k=3`; frozen JEPA
+  `τ=0.12, k=4`.
+- **Task-reachable** means right-start: the puck starts in the right alcove with
+  the hidden gate open. Left-start is unreachable by construction: the only
+  path to the right alcove crosses the one-way door, which closes the gate.
+- Held-out composition: **124 right-start reachable**, **37 left-start
+  non-crossing** (task-unreachable, gate still open), **79 left-start crossing**
+  (task-unreachable, gate closed).
+- Base state-feedback controller: **124/124** on right-start; **0/116** on
+  left-start. The quoted 0.770 is 124/161: the denominator contains the 37
+  left-start non-crossings.
 
-- Calibration: 160 episodes (99 gate-open / 61 gate-closed at the end).
-- Test: 240 episodes (159 gate-open / 81 gate-closed at the end).
-- Task-reachable episodes: **119 right-start**; left-start episodes are
-  unreachable by construction (crossing the one-way door closes the alcove
-  gate, so the goal behind it cannot be reached).
-- Base controller success on right-start episodes: **119/119 = 1.000**.
-  The quoted 0.748 is 119/159: the denominator also contains 40 left-start
-  episodes where the controller never crossed and therefore never reached the
-  goal. This is not a door-gap controller bug; see §5.
-- Gate thresholds compared here: belief **τ=0.18, k=4**; state **τ=0.25,
-  k=3**; frozen JEPA **τ=0.12, k=4**.
-- Persistence `k` is the number of consecutive frames below `τ`; abort delay is
-  measured after the hidden gate closes; step savings are unreachable-only.
+## 2. Final five-seed natural test (held-out seed 12000)
 
-## 2. Large test, three planner-belief seeds
-
-| seed | false abort (all open) | clean false abort | failure false abort | gate-closed abort | delay after close |
+| seed | false abort (all 161 open) | clean false (124 reachable) | left non-cross false (37) | gate-closed abort (79) | delay after close |
 |---:|---:|---:|---:|---:|---:|
-| 0 | **3.1%** (5/159) | **0/119** | 5/40 (12.5%) | **81/81 (100%)** | **3.40** |
-| 1 | **8.8%** (14/159) | **0/119** | 14/40 (35.0%) | 79/81 (97.5%) | **2.90** |
-| 2 | **0.0%** (0/159) | **0/119** | 0/40 (0.0%) | 77/81 (95.1%) | **3.19** |
+| 0 | **0/161 (0.0%)** | **0/124** | 0/37 (0.0%) | **79/79 (100%)** | 2.91 |
+| 1 | **0/161 (0.0%)** | **0/124** | 0/37 (0.0%) | **79/79 (100%)** | 2.89 |
+| 2 | 1/161 (0.6%) | **0/124** | 1/37 (2.7%) | **79/79 (100%)** | 2.92 |
+| 3 | 1/161 (0.6%) | **0/124** | 1/37 (2.7%) | **79/79 (100%)** | 2.99 |
+| 4 | **0/161 (0.0%)** | **0/124** | 0/37 (0.0%) | **79/79 (100%)** | 2.92 |
+| **mean ± std** | **0.25% ± 0.34%** | **0/124** | **1.08% ± 1.48%** | **100%** | **2.93 ± 0.04** |
 
-“Clean” means the base controller reached the goal; “failure” means it did not.
-**Every false abort is on a left-start controller failure, and every clean
-right-start episode is protected in all three seeds.** The gate-closed abort
-denominator is the 81 left-start episodes that crossed the door. The other 40
-left-start non-crossings are task-unreachable but keep the gate open, so they
-are in the failure column, not the gate-closed column.
+All five seeds pass the literal ≤5% all-open bar. The only two false aborts are
+left-start non-crossings; no reachable episode is aborted.
 
-Persistence trade-off (seed 0, τ=0.18): `k=3` gives 5.0% overall / 0% clean /
-100% abort / 2.40-step delay; `k=4` gives 3.1% / 0% / 100% / 3.40; `k=5` gives
-1.3% / 0% / 98.8% / 4.30. Seed 2 is at 0% overall for `k=4` and `k=5`. Seed 1
-has **no** `(τ,k)` on this grid below 5% overall (minimum ≈8.2%, at τ=0.16,
-`k=4` and τ=0.18, `k=5`); its clean false abort is still 0%.
+### Same test, other gates
 
-## 3. Why “gate open at the end” is not the same as “goal reachable”
+| arm | all-open false | clean false | gate-closed abort | delay |
+|---|---:|---:|---:|---:|
+| state-only | 2/161 (1.24%) | 1/124 (0.81%) | 57/79 (72.2%) | 2.93 |
+| frozen JEPA | 11/161 (6.83%) | 1/124 (0.81%) | 23/79 (29.1%) | 3.61 |
+| **belief** | **0–1/161 (0–0.62%)** | **0/124** | **79/79 (100%)** | **2.89–2.99** |
 
-The first pass labeled episodes by the final gate status. That made a
-left-start episode whose controller never crossed look “reachable” because the
-gate was still open. But a left-start puck cannot reach the right-alcove goal
-without crossing the one-way door, and crossing closes the alcove gate. The
-goal is therefore unreachable from the left regardless of whether the
-controller crosses. The 40 “failure” episodes in the table above are exactly
-these left-start non-crossings; they are task failures, not clean approaches.
+The state gate’s low false-abort rate buys a 28% miss on closed gates; the JEPA
+gate is worse on both axes.
 
-This is why the overall gate-status false-abort rate and the clean/task-
-reachable false-abort rate differ. The clean rate is the one that measures harm
-to successful episodes. The overall rate is inflated by counting aborts on
-episodes that were already task-unreachable.
-
-## 4. Matched counterfactual closed loop (decisive test)
+## 3. Final matched counterfactual (fresh pairs, seed 12000)
 
 Each of 100 pairs has the same goal, nuisance, branch state `[x, y, vx, vy]`,
-and **byte-identical last three frames** at the branch. One history crossed the
-one-way door (gate closed); the other started right of the door (gate open).
-Both branches then run the same state-feedback controller under their hidden
-gate status. Static gates see identical inputs at the branch; only a
-history-dependent belief can separate the pair.
+and byte-identical last three frames. One history crossed the one-way door
+(gate closed); the other started right of the door (gate open). Both branches
+then run the same controller under their hidden gate status.
 
-| seed | belief branch AUC | short-history control | static state early AUC | static JEPA early AUC | closed abort | open false abort | delay |
+| seed | belief branch AUC | short-history control | static state early AUC | static JEPA early AUC | belief closed abort | belief open false abort | delay |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 0 | **1.000** | 0.495 | 0.501 | 0.496 | 0.97 | **0.00** | 3.00 |
-| 1 | **0.998** | 0.495 | 0.501 | 0.496 | 0.98 | **0.00** | 3.00 |
-| 2 | **1.000** | 0.495 | 0.501 | 0.496 | 0.93 | **0.00** | 3.15 |
+| 0 | **1.0000** | 0.4949 | 0.5011 | 0.4960 | 1.00 | **0.00** | 3.00 |
+| 1 | **0.9998** | 0.4942 | 0.5011 | 0.4960 | 0.98 | **0.00** | 3.02 |
+| 2 | **1.0000** | 0.4950 | 0.5011 | 0.4960 | 1.00 | **0.00** | 3.00 |
+| 3 | **1.0000** | 0.4950 | 0.5011 | 0.4960 | 0.97 | **0.00** | 3.01 |
+| 4 | **1.0000** | 0.4947 | 0.5011 | 0.4960 | 0.97 | **0.00** | 3.03 |
+| **mean ± std** | **1.0000 ± 0.0001** | **0.4948 ± 0.0003** | **0.5011** | **0.4960** | **0.984 ± 0.015** | **0.00** | **3.01 ± 0.01** |
 
-The matched branch static differences are exactly **0.0** for both the state
-and JEPA features. The short-history control (last three frames only) is at
-chance, so the belief is using the earlier crossing history, not the current
-observation. Over the full post-branch window, the state gate reaches 0.78
-closed-abort / 0.13 open-false and the JEPA gate 0.22 / 0.25, but their early
-AUCs are chance; they separate only after the closed branch is physically
-stuck at the gate. That is the spatial shortcut the natural test could not
-rule out.
+The matched branch static differences are exactly **0.0**. The short-history
+control (last three frames only) is at chance, so the belief uses the earlier
+crossing history, not the current observation. Over the full post-branch
+window, the state gate reaches **0.78 closed / 0.14 open** and JEPA **0.26 /
+0.26**, but their early AUCs are chance; they separate only after the closed
+branch is physically stuck at the gate.
+
+## 4. What fixed seed 1
+
+On the validation seed 9000, the original 160-rollout/40-epoch recipe gave seed
+1 **8.8% all-open / 0% clean / 97.5% gate-closed** at `τ=0.18, k=4`. Its 14
+false aborts were all left-start non-crossings. The fixed recipe adds:
+
+- 480 planner rollouts instead of 160, giving **63 unique left-start
+  non-crossing hard negatives** instead of roughly 20;
+- each hard negative duplicated 2× in the training set (606 total sequences);
+- 60 epochs instead of 40;
+- the 400 counterfactual pairs unchanged.
+
+On the same validation set, seed 1 then gave **2.5% all-open / 0% clean / 99%
+gate-closed**; the other four seeds gave 0–2.5%. All five also held matched
+branch AUC 1.000 and open false abort 0.00. The final held-out seed confirms
+the fix generalizes.
 
 ## 5. Controller probe
 
-The 0.748 base success is a denominator artifact, not a gap-tracking bug:
+The 0.770 base success is a denominator artifact, not a gap-tracking bug:
 
 | controller | right-start success | left-start success | left-start gate closed | total successes |
 |---|---:|---:|---:|---:|
@@ -104,45 +113,63 @@ The 0.748 base success is a denominator artifact, not a gap-tracking bug:
 | staged door waypoint | 118/119 (0.992) | 0/121 | 121/121 | 118 |
 | goal-only with true state | 119/119 (1.000) | 0/121 | 82/121 | 119 |
 
-The waypoint controller crosses the door in every left-start episode, but
-those episodes are still unreachable because the gate closes; it does not
-increase total success. The base controller is already perfect on the
-reachable right-start set. Leave it as-is.
+The probe used the validation seed 9000 (119 right-start); the held-out seed
+12000 has 124 right-start and the gate report shows the same 124/124 result.
+The base controller is perfect on the reachable set. The waypoint controller
+crosses every left-start door, but those episodes are still unreachable because
+the gate closes; total success does not improve. Leave the controller as-is.
 
 ## 6. Verdict
 
-**The decisive matched counterfactual passes for all three seeds.** The belief
-gate protects every clean, task-reachable episode (0/119 false aborts) and
-aborts 93–100% of matched closed-gate branches, while state-only and JEPA are
-at chance at the branch and only separate after spatial divergence.
+- **Five-seed natural matrix: pass** under the literal all-open ≤5% criterion
+  on fresh held-out episodes. Clean/task-reachable false abort is **0/124** for
+  every seed; gate-closed abort is **100%** for every seed.
+- **Matched counterfactual: pass** for every seed. Belief branch AUC **1.000**,
+  short-history and static early controls at chance, open false abort **0.00**,
+  closed abort **0.97–1.00**.
+- **State-only and frozen-JEPA fail the matched shortcut test**: their early
+  AUCs are chance, and their natural closed-gate recall is 72.2% and 29.1%.
+- The seed-1 failure was a data-coverage problem, not a metric problem. It was
+  fixed by hard negatives without redefining the all-open denominator and
+  without an ensemble.
 
-**The literal 5% overall gate-status ceiling does not pass for seed 1**
-(8.8%), because it aborts 14/40 left-start non-crossing controller failures.
-Those episodes are task-unreachable; they are not clean approaches. The
-ensemble is not used to hide this. The five-seed matrix is **not started** until
-the primary metric is fixed or seed 1 is improved on a fresh episode set.
+## 7. Reproduce
 
-## 7. Next
+```sh
+# Five belief seeds, final recipe
+for s in 0 1 2 3 4; do
+  python3 scripts/planner_belief_train.py --seed "$s" \
+    --episodes 480 --epochs 60 --hard-repeat 2 \
+    --out runs/planner-belief-hard
+done
 
-1. **Decide the primary false-abort set**: clean/task-reachable episodes
-   (0% for all seeds) or all gate-open episodes (seed 1 fails at 8.8%).
-2. If the overall ceiling is required, retrain the planner belief with more
-   planner rollouts and explicit left-start non-crossing hard negatives; do not
-   reseed until a seed passes.
-3. Lock `(τ,k)` on a **fresh** validation seed, then run a fresh 240-episode
-   single-seed test before the five-seed matrix. The current 240 episodes have
-   already been used to pick τ=0.18, `k=4`.
-4. Keep the ensemble as an optional deployment row only; report individual
-   seeds in the matrix.
+# Held-out natural test, locked (tau,k)
+for s in 0 1 2 3 4; do
+  python3 scripts/closed_loop_gate.py \
+    --belief "runs/planner-belief-hard/belief_s$s.safetensors" \
+    --test-episodes 240 --test-seed 12000 \
+    --out "runs/final-gate-s$s"
+done
 
-## Caveats
+# Fresh matched counterfactual pairs
+for s in 0 1 2 3 4; do
+  python3 scripts/matched_cf_closed_loop.py \
+    --belief "runs/planner-belief-hard/belief_s$s.safetensors" \
+    --pairs 100 --seed 12000 --out "runs/final-cf-s$s"
+done
+```
 
-- The 240-episode set was used to inspect the grid, so τ=0.18, `k=4` is a
-  validation choice, not a fully held-out confirmatory threshold.
-- Seed 1 is the weak belief seed: counterfactual last-frame AUC 0.918 vs
-  1.000 for seeds 0/2, and 8.8% overall gate-status false abort.
-- Left-start episodes are task-unreachable by construction; the “open gate”
-  label alone overstates reachability.
+The selected test-grid row is `τ=0.18, k=4` for the belief gate; the state
+(`τ=0.25, k=3`) and JEPA (`τ=0.12, k=4`) rows are read from the same report.
+
+## 8. Caveats
+
+- The held-out natural set has 124 reachable and 116 unreachable episodes; the
+  37 left-start non-crossings are task-unreachable but keep the gate open.
+- The matched counterfactual pairs use controlled branch histories, not natural
+  rollouts; the 240-episode natural test covers the natural distribution.
 - The gate status is hidden; a manual lock with no history is unobservable to
   every gate.
 - The closed-loop controller is a state-feedback heuristic, not a full MPC.
+- The ensemble is not used in the matrix. If reported for deployment, keep it
+  as an optional extra row.

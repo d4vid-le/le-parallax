@@ -414,7 +414,7 @@ the isolation.
 | Hypothesis B | Static controls **0.497 / 0.391–0.497**; frozen JEPA+GRU **0.515**; end-to-end JEPA+GRU **0.999–1.000** | The belief state solves the controlled counterfactual, but only with end-to-end training; this is a memory result, not control |
 | Sanity checks | Reachability fine-tune: state **0.157→0.442** but dynamics **0.0179→0.1097**; frozen JEPA door cue at x=0.45 **0.524/0.529** | The fine-tune breaks dynamics and the frozen JEPA lacks the door cue; use a separate belief encoder + GRU (Option A) |
 | Step 2 natural belief | Static JEPA **0.431/0.432**; belief hard **0.948–0.997**; +3/+5/+10 **0.960/0.980/0.980**; counterfactual **0.766/0.974/0.895** (mean **0.878**); pure natural hard ~1.0 but counterfactual **0.407** | The natural+counterfactual mixture fixes the lazy shortcut; all three gates pass; Step 3 is justified |
-| Step 3 closed-loop | 240 test: 119 reachable / 121 unreachable; base **119/119** on reachable; planner belief clean false **0/119** all seeds; gate-closed abort **81/81, 79/81, 77/81**; matched CF branch AUC **1.000/0.998/1.000**, short-history **0.495**, open false **0.00**; state/JEPA early **0.501/0.496** | Decisive matched CF passes; seed 1 still 8.8% all-open false abort (all task-unreachable failures); five-seed matrix not started |
+| Step 3 closed-loop | Held-out seed 12000: 124 reachable / 116 unreachable; five belief seeds all-open false **0–0.6%**, clean false **0/124**, gate-closed **79/79**, delay **2.89–2.99**; matched CF branch AUC **0.9998–1.000**, short-history **0.494–0.495**, open false **0.00**; state/JEPA early **0.5011/0.4960** | **Pass**: seed 1 fixed with hard negatives; state/JEPA fail the matched shortcut test |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -559,20 +559,21 @@ shortcut (hard ~1.0, counterfactual **0.407**); the mixture fixes it. Step 3
 planner integration is justified. See
 [`NATURAL-BELIEF.md`](NATURAL-BELIEF.md).
 
-**Step 3** calibrates the abort gates in closed loop and adds the matched
-counterfactual. The 240-episode test has **119 right-start task-reachable** and
-**121 left-start task-unreachable** episodes; the base controller succeeds on
-all 119 reachable ones, so the quoted **0.748** is 119/159 (40 left-start
+**Step 3** locks the abort gates and runs the final five-seed matrix on a fresh
+held-out episode seed. The 240-episode set has **124 right-start reachable** and
+**116 left-start unreachable** episodes; the base controller succeeds on all
+124 reachable ones, so the quoted 0.770 is 124/161 (37 left-start
 non-crossings in the denominator), not a door-gap controller failure. At
-τ=0.18, `k=4` the three planner-belief seeds have clean false abort **0/119**
-and gate-closed abort **81/81, 79/81, 77/81** at **3.40 / 2.90 / 3.19** steps
-after close. The matched counterfactual—identical branch frames and 4-D state,
-different crossing history—gives belief branch AUC **1.000 / 0.998 / 1.000**,
-short-history control **0.495**, and open false abort **0.00**; state/JEPA early
-AUC is **0.501 / 0.496**. The state gate’s full-window 0.78 closed / 0.13 open
-is post-divergence spatial information, not history. The literal all-open
-false-abort ceiling still fails seed 1 (**8.8%**, all on left-start
-task-unreachable failures), so no five-seed matrix. See
+τ=0.18, `k=4` all five belief seeds pass the literal all-open ≤5% bar:
+**0/161, 0/161, 1/161, 1/161, 0/161**; clean false abort is **0/124** for every
+seed; gate-closed abort is **79/79** for every seed at **2.89–2.99** steps after
+close. The fresh matched counterfactual—identical branch frames and 4-D state,
+different crossing history—gives belief branch AUC **0.9998–1.000**,
+short-history control **0.494–0.495**, static state/JEPA early AUC **0.5011 /
+0.4960**, and open false abort **0.00**. State-only and JEPA are at chance at the
+branch; their natural closed-gate recall is only **72.2% / 29.1%**. The earlier
+seed-1 failure was a data-coverage problem, fixed by 480 planner rollouts and
+left-start non-crossing hard negatives, not by redefining the metric. See
 [`CLOSED-LOOP-GATE.md`](CLOSED-LOOP-GATE.md).
 
 ### 6.4 Why the effect appears in control only after domain randomization
@@ -636,16 +637,16 @@ On natural hidden-alcove episodes, a separate belief stream reaches **0.948–0.
 hard AUC**, holds **0.960–0.980 through t_cross+10**, and passes the held-out
 counterfactual re-check (**0.766 / 0.974 / 0.895** last-frame; mean **0.878**).
 The pure natural model was a shortcut (counterfactual **0.407**); the
-natural+counterfactual mixture is necessary. In closed loop, the
-planner-trained belief gate protects all **119/119** task-reachable episodes
-(0 false aborts) and aborts **81/81, 79/81, 77/81** of gate-closed episodes
-**3.40 / 2.90 / 3.19** steps after the gate closes. The matched counterfactual
-passes: branch AUC **1.000 / 0.998 / 1.000**, short-history control **0.495**,
-open false abort **0.00**; state/JEPA early AUC **0.501 / 0.496**. Seed 1 still
-has an **8.8%** all-open false-abort rate, all on task-unreachable left-start
-failures, so the five-seed matrix is not started. The memory mechanism works;
-the remaining issue is a metric/label decision and one weak seed, not the
-matched control result.
+natural+counterfactual mixture is necessary. In the final five-seed matrix on a
+fresh held-out seed, the planner-trained belief gate protects all **124/124**
+task-reachable episodes (0 false aborts), passes the literal all-open ≤5% bar
+(**0–0.6%**), and aborts **79/79** gate-closed episodes **2.89–2.99** steps
+after the gate closes. The fresh matched counterfactual passes for every seed:
+branch AUC **0.9998–1.000**, short-history control **0.494–0.495**, open false
+abort **0.00**; state/JEPA early AUC **0.5011 / 0.4960**. State-only and JEPA reach only
+**72.2% / 29.1%** closed-gate recall. The earlier seed-1 failure was a
+data-coverage problem fixed by hard negatives, not a metric change. The memory
+mechanism works and the closed-loop gate is now clean.
 
 Positive-pair geometry is a conditional lever for continual world models:
 **support first, then alignment; gating is not retention.** It is not a universal
@@ -679,7 +680,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Sanity checks | `scripts/spatial_forgetting_probe.py`, `scripts/door_cue_probe.py` | `docs/SANITY-CHECKS.md` |
 | Step 2 belief | `scripts/natural_belief.py` | `docs/NATURAL-BELIEF.md` |
 | Step 3 gate | `scripts/closed_loop_gate.py`, `scripts/planner_belief_train.py` | `docs/CLOSED-LOOP-GATE.md` |
-| Step 3 matched CF | `scripts/matched_cf_closed_loop.py`, `scripts/controller_probe.py` | `docs/CLOSED-LOOP-GATE.md` |
+| Step 3 matched CF | `scripts/matched_cf_closed_loop.py`, `scripts/controller_probe.py`, `scripts/final_matrix_report.py` | `docs/CLOSED-LOOP-GATE.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -742,11 +743,10 @@ Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 | Spatial probe | ridge on 3-frame latent; one-step dynamics MSE |
 | Door-cue probe | linear ridge at x=0.45/0.50, single vs 3-frame |
 | Natural belief | hidden alcove, 80/20, per-step labels; separate frame enc + GRU 64; 400 cf pairs; 40 epochs; unreachable weight 3× |
-| Closed-loop gate | 160 cal / 240 test; τ 0.10–0.25; k 2–5; fixed τ=0.18, k=4; clean vs failure split |
-| Planner belief | 160 planner rollouts + 400 cf pairs; 40 epochs; 3 seeds |
-| Matched CF | 100 pairs; identical branch frames/4-D state; closed vs open history; static vs belief |
+| Closed-loop gate | 160 cal / 240 held-out test (seed 12000); fixed τ=0.18, k=4; five seeds |
+| Planner belief | 480 planner rollouts + 63 hard negatives ×2 + 400 cf pairs; 60 epochs; 5 seeds |
+| Matched CF | 100 fresh pairs; identical branch frames/4-D state; closed vs open history; static vs belief |
 | Controller probe | 240 episodes; goal-only vs staged waypoint vs true-state; right/left-start split |
-| Planner belief | 160 closed-loop rollouts + 400 cf pairs; 40 epochs; one seed |
 
 ## References
 
