@@ -414,6 +414,7 @@ the isolation.
 | Hypothesis B | Static controls **0.497 / 0.391–0.497**; frozen JEPA+GRU **0.515**; end-to-end JEPA+GRU **0.999–1.000** | The belief state solves the controlled counterfactual, but only with end-to-end training; this is a memory result, not control |
 | Sanity checks | Reachability fine-tune: state **0.157→0.442** but dynamics **0.0179→0.1097**; frozen JEPA door cue at x=0.45 **0.524/0.529** | The fine-tune breaks dynamics and the frozen JEPA lacks the door cue; use a separate belief encoder + GRU (Option A) |
 | Step 2 natural belief | Static JEPA **0.431/0.432**; belief hard **0.948–0.997**; +3/+5/+10 **0.960/0.980/0.980**; counterfactual **0.766**; pure natural hard ~1.0 but counterfactual **0.407** | The natural+counterfactual mixture fixes the lazy shortcut; all three gates pass; Step 3 is justified |
+| Step 3 closed-loop | Base reach success 0.75; state gate 0% false/100% abort; JEPA 0%/25%; natural belief 18% false; planner belief **7.1% false/100% abort/0.83 after close**; calibration 1% | Not clean: 7.1% >5%, 28 reachable test too small, state gate likely shortcut, matched counterfactual missing |
 
 These failures are part of the contribution. They define the boundary of the
 claim and make the surviving results reproducible rather than rhetorical.
@@ -557,6 +558,19 @@ model was a shortcut (hard ~1.0, counterfactual **0.407**); the mixture fixes
 it. Step 3 planner integration is justified. See
 [`NATURAL-BELIEF.md`](NATURAL-BELIEF.md).
 
+**Step 3 first pass** calibrates the abort gates in closed loop. The base
+reachable success is **0.75** (the controller fails some open-gate door gaps);
+the gate arms do not reduce it. On the held-out test (28 reachable / 12
+unreachable), the state gate gets **0% false / 100% abort** but is likely a
+spatial shortcut; the frozen-JEPA gate gets 0% false / **25%** abort. The
+natural-trained belief gate has **18%** false aborts. Retraining the belief
+stream on planner-driven closed-loop trajectories cuts false aborts to
+**7.1% (2/28)** and aborts **100%** of unreachable episodes **0.83 steps after
+the gate closes** (calibration false abort 1.0%). The 7.1% test is one episode
+over the 5% ceiling, the reachable test is small, and the matched
+counterfactual closed-loop is missing. Step 3 is **not cleanly passed**; no
+five-seed matrix. See [`CLOSED-LOOP-GATE.md`](CLOSED-LOOP-GATE.md).
+
 ### 6.4 Why the effect appears in control only after domain randomization
 
 The first control tests failed because the encoder had never seen the shifted
@@ -618,7 +632,13 @@ On natural hidden-alcove episodes, a separate belief stream reaches **0.948–0.
 hard AUC**, holds **0.960–0.980 through t_cross+10**, and passes the held-out
 counterfactual re-check (**0.766**). The pure natural model was a shortcut
 (counterfactual **0.407**); the natural+counterfactual mixture is necessary.
-The memory mechanism works; closed-loop control is the next test.
+In closed loop, retraining the belief stream on planner-driven trajectories cuts
+false aborts from **18% to 7.1% (2/28)** and aborts **100%** of unreachable
+episodes **0.83 steps after the gate closes** (calibration 1.0%). The state gate
+gets 0% false / 100% abort but is likely a spatial shortcut. The 7.1% test is
+one episode over the 5% ceiling, and the matched counterfactual closed-loop is
+still missing. The memory mechanism works; the closed-loop gate is close but not
+clean.
 
 Positive-pair geometry is a conditional lever for continual world models:
 **support first, then alignment; gating is not retention.** It is not a universal
@@ -651,6 +671,7 @@ invariance fix, and the collisions that break it are part of the result.
 | Hypothesis B | `scripts/counterfactual_belief.py`, `scripts/counterfactual_gru.py` | `docs/HYPOTHESIS-B.md` |
 | Sanity checks | `scripts/spatial_forgetting_probe.py`, `scripts/door_cue_probe.py` | `docs/SANITY-CHECKS.md` |
 | Step 2 belief | `scripts/natural_belief.py` | `docs/NATURAL-BELIEF.md` |
+| Step 3 gate | `scripts/closed_loop_gate.py`, `scripts/planner_belief_train.py` | `docs/CLOSED-LOOP-GATE.md` |
 | Snapshots | `scripts/make_snapshots.py` | — |
 
 Environment: Apple M5 Pro, 64 GB, MLX 0.32.4, Python 3.12. Model: 142,564
@@ -713,6 +734,8 @@ Phase2    eab4147cc77c2aa99b0ef5ad293e98503d21a9a6b61ceea67dcff08826412e46
 | Spatial probe | ridge on 3-frame latent; one-step dynamics MSE |
 | Door-cue probe | linear ridge at x=0.45/0.50, single vs 3-frame |
 | Natural belief | hidden alcove, 80/20, per-step labels; separate frame enc + GRU 64; 400 cf pairs; 40 epochs; unreachable weight 3× |
+| Closed-loop gate | 160 cal / 40 test; τ 0.10–0.25; k 2–5; false ceiling 5%; time after gate close |
+| Planner belief | 160 closed-loop rollouts + 400 cf pairs; 40 epochs; one seed |
 
 ## References
 

@@ -310,8 +310,13 @@ the separate belief stream reaches **0.948–0.997 hard AUC**, holds
 **0.960/0.980/0.980** at `t_cross+3/+5/+10`, and passes the held-out
 counterfactual re-check (**0.766**). The pure natural model was a shortcut
 (counterfactual **0.407**); the natural+counterfactual mixture is necessary.
-State decoupling works; the asymmetry/planner value does not. Step 3 planner
-integration is justified. The trial is suggestive, not confirmatory. See
+In closed loop, the planner-trained belief gate cuts false aborts from 18% to
+**7.1% (2/28)** and aborts **100%** of unreachable episodes **0.83 steps after
+the gate closes**; the calibration false abort is **1.0%**. The state gate’s
+0%/100% is likely a spatial shortcut. The 7.1% test is one episode over the 5%
+ceiling, and the matched counterfactual closed-loop is missing. State decoupling
+works; the asymmetry/planner value is not yet clean. The trial is suggestive,
+not confirmatory. See
 [`docs/PHASE2-PILOT.md`](docs/PHASE2-PILOT.md),
 [`docs/PHASE2-TUNING.md`](docs/PHASE2-TUNING.md),
 [`docs/PHASE2-CAPACITY.md`](docs/PHASE2-CAPACITY.md),
@@ -319,8 +324,9 @@ integration is justified. The trial is suggestive, not confirmatory. See
 [`docs/DUAL-STREAM-PILOT.md`](docs/DUAL-STREAM-PILOT.md),
 [`docs/HYPOTHESIS-A.md`](docs/HYPOTHESIS-A.md),
 [`docs/HYPOTHESIS-B.md`](docs/HYPOTHESIS-B.md),
-[`docs/SANITY-CHECKS.md`](docs/SANITY-CHECKS.md), and
-[`docs/NATURAL-BELIEF.md`](docs/NATURAL-BELIEF.md).
+[`docs/SANITY-CHECKS.md`](docs/SANITY-CHECKS.md),
+[`docs/NATURAL-BELIEF.md`](docs/NATURAL-BELIEF.md), and
+[`docs/CLOSED-LOOP-GATE.md`](docs/CLOSED-LOOP-GATE.md).
 
 ## 7. H4 — the transfer claim
 

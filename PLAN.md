@@ -289,10 +289,16 @@ are nuisance-specific, not dynamics-immune. See
   episodes the static JEPA is 0.431/0.432, the belief stream reaches
   **0.948–0.997 hard AUC**, holds **0.960/0.980/0.980** at `t_cross+3/+5/+10`,
   and passes the counterfactual re-check (**0.766**); the pure natural model was
-  a shortcut (0.407). The natural+counterfactual mixture is necessary. Next:
-  Step 3 planner integration and closed-loop abort metrics, not another
-  five-seed matrix. The state path is solved; the irreversibility/planner value
-  is not yet. Inconclusive, not confirmatory.
+  a shortcut (0.407). The natural+counterfactual mixture is necessary. Step 3
+  first pass: base reachable success 0.75; state gate 0% false/100% abort but
+  likely a spatial shortcut; JEPA 0%/25%; natural belief 18% false; planner
+  belief **7.1% false/100% abort/0.83 steps after close**, calibration 1%. The
+  7.1% test is one episode over the 5% ceiling, the reachable test is small, and
+  the matched counterfactual closed-loop is missing. Next: matched
+  counterfactual, 100+ reachable test, ensemble of 3 planner-trained belief
+  seeds, and fix the base 0.75 reachable success; not another five-seed matrix.
+  The state path is solved; the irreversibility/planner value is not yet.
+  Inconclusive, not confirmatory.
 
 See [`docs/COLLISION-1B.md`](docs/COLLISION-1B.md),
 [`docs/COLLISION-3.md`](docs/COLLISION-3.md),

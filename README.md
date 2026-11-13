@@ -278,6 +278,16 @@ t_cross+3/+5/+10**. The held-out counterfactual re-check is **0.766** (pass
 integration is justified. See
 [`docs/NATURAL-BELIEF.md`](docs/NATURAL-BELIEF.md).
 
+**Step 3 first pass: not cleanly passed.** Closed-loop calibration on 160
+episodes (99 reachable / 61 unreachable), test on 40 (28 / 12). The
+planner-trained belief gate cuts false aborts from **18% → 7.1%** (2/28) and
+aborts **100%** of unreachable episodes **0.83 steps after the gate closes**;
+the calibration false-abort is **1.0%**. The state gate gets 0/28 false and
+100% abort but is probably a spatial shortcut. The 7.1% test is one episode over
+the 5% ceiling, and the matched counterfactual closed-loop is still missing.
+Do not run the five-seed matrix yet. See
+[`docs/CLOSED-LOOP-GATE.md`](docs/CLOSED-LOOP-GATE.md).
+
 **The chapter in nine results:** mechanism (H1), control (H2-v4), retention
 (H3), dynamics boundary (H3b), OOD characterization, CSA fix, Le-Gates router
 boundary, Anti-Equivalence failure, and the inconclusive Phase 2 pilot. The full
@@ -350,6 +360,7 @@ docs/HYPOTHESIS-A.md      discriminative reachability probe (confounded)
 docs/HYPOTHESIS-B.md      recurrent belief-state counterfactual (passes)
 docs/SANITY-CHECKS.md     spatial/dynamics + door-cue probes
 docs/NATURAL-BELIEF.md    natural-episode belief stream (Step 2 pass)
+docs/CLOSED-LOOP-GATE.md  closed-loop abort-gate calibration (not clean)
 docs/RELATED-WORK.md   the papers this project sits between
 ```
 
